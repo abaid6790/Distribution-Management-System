@@ -1,0 +1,41 @@
+{% extends "invoices/_print_base.html" %}
+{% block doc_title %}{{ purchase.invoice_number }}{% endblock %}
+{% block doc_heading %}Purchase Invoice{% endblock %}
+{% block doc_meta %}
+  <div class="muted">{{ purchase.invoice_number }}</div>
+  <div class="muted">{{ purchase.date.strftime('%d %b %Y') }}</div>
+  <div class="status-pill">{{ purchase.payment_status.replace('_',' ')|title }}</div>
+{% endblock %}
+{% block doc_body %}
+  <div style="margin-bottom:16px">
+    <div class="muted">Supplier</div>
+    <div style="font-weight:500">{{ purchase.supplier.name }}</div>
+    <div class="muted">{{ purchase.supplier.phone }} · {{ purchase.supplier.address }}</div>
+  </div>
+
+  <table>
+    <thead><tr><th>Product</th><th class="num">Boxes</th><th class="num">Price/Box</th><th class="num">Discount</th><th class="num">Total</th></tr></thead>
+    <tbody>
+      {% for item in purchase.items %}
+      <tr>
+        <td>{{ item.product.name }}</td>
+        <td class="num">{{ item.quantity_boxes }}</td>
+        <td class="num">{{ item.purchase_price_per_box|money2 }}</td>
+        <td class="num">{{ item.discount|money2 }}</td>
+        <td class="num">{{ item.line_total|money2 }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="totals">
+    <div><span>Subtotal</span><span class="num">{{ purchase.subtotal|money2 }}</span></div>
+    <div><span>Discount</span><span class="num">{{ purchase.overall_discount|money2 }}</span></div>
+    <div><span>Tax</span><span class="num">{{ purchase.tax|money2 }}</span></div>
+    <div class="grand"><span>Grand Total</span><span class="num">{{ purchase.grand_total|money2 }}</span></div>
+    <div><span>Cash</span><span class="num">{{ purchase.cash_amount|money2 }}</span></div>
+    <div><span>Credit</span><span class="num">{{ purchase.credit_amount|money2 }}</span></div>
+  </div>
+
+  {% if purchase.notes %}<div class="muted" style="margin-top:16px">Notes: {{ purchase.notes }}</div>{% endif %}
+{% endblock %}

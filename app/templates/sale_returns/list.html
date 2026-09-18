@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Sale Returns{% endblock %}
+{% block content %}
+<div class="max-w-[1100px] space-y-6">
+  <div class="flex items-center justify-between flex-wrap gap-3">
+    <div>
+      <h1 class="font-display text-2xl text-ink">Sale Returns</h1>
+      <p class="text-slate text-sm mt-1">Returns against an original sale — stock and cash reverse automatically.</p>
+    </div>
+    <a href="{{ url_for('sale_returns.find_sale') }}" class="rounded-md bg-ink text-paper font-medium px-4 py-2 text-sm hover:bg-ink2 transition-colors">+ New Return</a>
+  </div>
+
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line">
+        <th class="px-5 py-3 font-normal">Return Invoice</th><th class="px-5 py-3 font-normal">Original Invoice</th>
+        <th class="px-5 py-3 font-normal">Customer</th><th class="px-5 py-3 font-normal">Date</th><th class="px-5 py-3 font-normal text-right">Amount</th><th class="px-5 py-3 font-normal"></th>
+      </tr></thead>
+      <tbody>
+        {% if rows|length == 0 %}
+        <tr><td colspan="6" class="px-5 py-10 text-center text-slatelight">No sale returns yet.</td></tr>
+        {% else %}
+        {% for r, sale, customer in rows %}
+        <tr class="border-b border-line/60 last:border-0">
+          <td class="px-5 py-3 font-mono text-ink">{{ r.return_invoice_number }}</td>
+          <td class="px-5 py-3 font-mono text-ink">{{ sale.invoice_number }}</td>
+          <td class="px-5 py-3 text-ink">{{ customer.name }}</td>
+          <td class="px-5 py-3 text-ink">{{ r.date|shortdate }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.grand_total|money }}</td>
+          <td class="px-5 py-3 text-right"><a href="{{ url_for('invoices.print_sale_return', return_id=r.id) }}" target="_blank" class="text-slate hover:text-ink text-sm">Print</a></td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}New Sale Return{% endblock %}
+{% block content %}
+<div class="max-w-2xl space-y-6">
+  <div>
+    <a href="{{ url_for('sale_returns.list_returns') }}" class="text-sm text-slate hover:text-ink">&larr; Sale Returns</a>
+    <h1 class="font-display text-2xl text-ink mt-2">Find the original sale</h1>
+    <p class="text-slate text-sm mt-1">Search by invoice number, customer name, or phone number.</p>
+  </div>
+
+  <form method="get" class="flex gap-2">
+    <input type="text" name="q" value="{{ q }}" placeholder="e.g. SALE-000001 or Ali General Store" autofocus
+           class="flex-1 rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+    <button type="submit" class="rounded-md px-4 py-2 text-sm font-medium bg-ink text-paper hover:bg-ink2 transition-colors">Search</button>
+  </form>
+
+  {% if q %}
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line">
+        <th class="px-5 py-3 font-normal">Invoice</th><th class="px-5 py-3 font-normal">Date</th><th class="px-5 py-3 font-normal">Customer</th><th class="px-5 py-3 font-normal text-right">Total</th><th></th>
+      </tr></thead>
+      <tbody>
+        {% if results|length == 0 %}
+        <tr><td colspan="5" class="px-5 py-8 text-center text-slatelight">No matching sales found.</td></tr>
+        {% else %}
+        {% for sale, customer in results %}
+        <tr class="border-b border-line/60 last:border-0 hover:bg-paper2/40 cursor-pointer" onclick="window.location='{{ url_for('sale_returns.new_return', sale_id=sale.id) }}'">
+          <td class="px-5 py-3 font-mono text-ink">{{ sale.invoice_number }}</td>
+          <td class="px-5 py-3 text-ink">{{ sale.date|shortdate }}</td>
+          <td class="px-5 py-3 text-ink">{{ customer.name }} · {{ customer.phone }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ sale.grand_total|money }}</td>
+          <td class="px-5 py-3 text-right text-slate text-sm">Select &rarr;</td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% block title %}New Purchase{% endblock %}
+{% block content %}
+<div class="max-w-4xl space-y-6">
+  <div>
+    <h1 class="font-display text-2xl text-ink">{{ 'Edit Purchase ' + editing.invoice_number if editing else 'New Purchase' }}</h1>
+    <p class="text-slate text-sm mt-1">{{ 'The invoice number stays the same; everything else can be corrected here. New products can\'t be created while editing.' if editing else 'The supplier is created automatically if this name, phone, and address combination is new.' }}</p>
+  </div>
+
+  <form method="post" id="purchase-form" class="space-y-6" action="{{ url_for('purchases.edit_purchase', purchase_id=editing.id) if editing else url_for('purchases.new_purchase') }}">
+    <div class="bg-white border border-line rounded-lg p-6 space-y-4">
+      <h2 class="font-display text-sm text-ink">Purchase details</h2>
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Date</label>
+        <input type="date" name="date" required max="{{ '' }}" value="{{ form.get('date') or '' }}" id="date-input"
+               class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+      </div>
+      <div class="grid grid-cols-3 gap-4">
+        <div class="space-y-1.5"><label class="text-sm text-slate">Supplier name</label>
+          <input name="supplier_name" required value="{{ form.get('supplier_name','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+        <div class="space-y-1.5"><label class="text-sm text-slate">Supplier phone</label>
+          <input name="supplier_phone" required value="{{ form.get('supplier_phone','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+        <div class="space-y-1.5"><label class="text-sm text-slate">Supplier address</label>
+          <input name="supplier_address" required value="{{ form.get('supplier_address','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+      </div>
+    </div>
+
+    <div class="bg-white border border-line rounded-lg p-6 space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="font-display text-sm text-ink">Products</h2>
+        <button type="button" id="add-line" class="rounded-md px-3 py-1.5 text-xs font-medium border border-line text-ink hover:bg-paper2 transition-colors">+ Add line</button>
+      </div>
+      <div id="line-items" class="space-y-3"></div>
+    </div>
+
+    <div class="bg-white border border-line rounded-lg p-6 space-y-4">
+      <h2 class="font-display text-sm text-ink">Totals & payment</h2>
+      <div class="grid grid-cols-3 gap-4">
+        <div class="space-y-1.5"><label class="text-sm text-slate">Overall discount</label>
+          <input type="number" min="0" step="0.01" name="overall_discount" value="{{ form.get('overall_discount','0') }}" id="overall-discount"
+                 class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+        <div class="space-y-1.5"><label class="text-sm text-slate">Tax</label>
+          <input type="number" min="0" step="0.01" name="tax" value="{{ form.get('tax','0') }}" id="tax-input"
+                 class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+        <div class="space-y-1.5"><label class="text-sm text-slate">Payment method</label>
+          <select name="payment_method" id="payment-method" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber">
+            <option value="CASH">Cash</option><option value="CREDIT">Credit</option><option value="PARTIAL">Partial</option>
+          </select></div>
+      </div>
+      <div id="cash-amount-field" class="space-y-1.5 hidden">
+        <label class="text-sm text-slate">Cash paid now</label>
+        <input type="number" min="0" step="0.01" name="cash_amount" id="cash-amount" value="{{ form.get('cash_amount','0') }}"
+               class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+      </div>
+      <div class="space-y-1.5"><label class="text-sm text-slate">Notes</label>
+        <input name="notes" value="{{ form.get('notes','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+
+      <div class="border-t border-line pt-4 space-y-1.5 text-sm">
+        <div class="flex justify-between text-slate"><span>Subtotal</span><span class="font-mono text-ink" id="subtotal-display">Rs 0</span></div>
+        <div class="flex justify-between font-medium text-ink text-base pt-1"><span>Grand total</span><span class="font-mono" id="grandtotal-display">Rs 0</span></div>
+        <div class="flex justify-between text-slate"><span>Cash</span><span class="font-mono text-rust" id="cash-display">Rs 0</span></div>
+        <div class="flex justify-between text-slate"><span>Credit</span><span class="font-mono text-forest" id="credit-display">Rs 0</span></div>
+      </div>
+    </div>
+
+    {% if errors %}
+    <div class="rounded-md border border-rust/30 bg-rust/5 px-3.5 py-2.5 text-sm text-rust space-y-0.5">
+      {% for e in errors %}<div>{{ e }}</div>{% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="flex justify-end gap-2">
+      <a href="{{ url_for('purchases.list_purchases') }}" class="rounded-md px-4 py-2 text-sm font-medium border border-line text-ink hover:bg-paper2 transition-colors">Cancel</a>
+      <button type="submit" class="rounded-md px-4 py-2 text-sm font-medium bg-ink text-paper hover:bg-ink2 transition-colors">{{ 'Save changes' if editing else 'Create purchase' }}</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  const PRODUCTS = {{ products_json|safe }};
+  const IS_EDITING = {{ 'true' if editing else 'false' }};
+  document.getElementById('date-input').max = new Date().toISOString().slice(0,10);
+  if (!document.getElementById('date-input').value) {
+    document.getElementById('date-input').value = new Date().toISOString().slice(0,10);
+  }
+
+  const container = document.getElementById('line-items');
+  let rowIndex = 0;
+
+  function productOptions(selectedId) {
+    return '<option value="">Select product…</option>' + PRODUCTS.map(p =>
+      `<option value="${p.id}" ${p.id === selectedId ? 'selected' : ''}>${p.name} (${p.sku})</option>`
+    ).join('');
+  }
+
+  function addRow(prefill) {
+    const idx = rowIndex++;
+    const div = document.createElement('div');
+    div.className = 'border border-line rounded-md p-3 space-y-2';
+    div.innerHTML = `
+      <div class="flex items-center gap-3">
+        <div class="flex gap-1 text-xs" ${IS_EDITING ? 'style="display:none"' : ''}>
+          <button type="button" data-mode-btn="existing" class="px-2.5 py-1 rounded-full bg-ink text-paper">Existing product</button>
+          <button type="button" data-mode-btn="new" class="px-2.5 py-1 rounded-full bg-paper2 text-slate">New product</button>
+        </div>
+        <div class="flex-1"></div>
+        <button type="button" data-remove class="text-slate hover:text-rust transition-colors p-1 text-sm">Remove</button>
+      </div>
+      <input type="hidden" name="mode[]" value="existing" data-mode-input />
+      <div data-existing-block>
+        <select name="product_id[]" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" data-product-select>
+          ${productOptions(prefill ? prefill.product_id : '')}
+        </select>
+      </div>
+      <div data-new-block class="hidden grid grid-cols-4 gap-2">
+        <input placeholder="Product name" name="new_name[]" class="col-span-2 rounded-md border border-line bg-white px-3 py-2 text-sm" />
+        <input placeholder="Category" name="new_category[]" class="rounded-md border border-line bg-white px-3 py-2 text-sm" />
+        <input placeholder="SKU" name="new_sku[]" class="rounded-md border border-line bg-white px-3 py-2 text-sm" />
+        <input type="number" min="1" placeholder="Packs/box" name="new_packs_per_box[]" value="1" class="rounded-md border border-line bg-white px-3 py-2 text-sm" />
+        <input type="number" min="0" placeholder="Min stock (packs)" name="new_min_stock[]" value="0" class="col-span-3 rounded-md border border-line bg-white px-3 py-2 text-sm" />
+      </div>
+      <div class="grid grid-cols-4 gap-2">
+        <input type="number" min="0" step="0.001" placeholder="Boxes" name="quantity_boxes[]" value="${prefill ? prefill.quantity_boxes : '1'}" class="rounded-md border border-line bg-white px-3 py-2 text-sm" data-qty />
+        <input type="number" min="0" step="0.01" placeholder="Purchase price / box" name="purchase_price_per_box[]" value="${prefill ? prefill.purchase_price_per_box : ''}" class="rounded-md border border-line bg-white px-3 py-2 text-sm" data-pprice />
+        <input type="number" min="0" step="0.01" placeholder="Sale price / box" name="sale_price_per_box[]" value="${prefill ? prefill.sale_price_per_box : ''}" class="rounded-md border border-line bg-white px-3 py-2 text-sm" data-sprice />
+        <input type="number" min="0" step="0.01" placeholder="Discount" name="discount[]" value="${prefill ? prefill.discount : '0'}" class="rounded-md border border-line bg-white px-3 py-2 text-sm" data-discount />
+      </div>
+      <div class="flex items-center justify-between text-xs">
+        <span class="text-slatelight" data-packs-hint></span>
+        <span class="font-mono text-ink" data-line-total>Rs 0</span>
+      </div>
+    `;
+    container.appendChild(div);
+
+    const modeInput = div.querySelector('[data-mode-input]');
+    const existingBlock = div.querySelector('[data-existing-block]');
+    const newBlock = div.querySelector('[data-new-block]');
+    const productSelect = div.querySelector('[data-product-select]');
+    const pprice = div.querySelector('[data-pprice]');
+    const sprice = div.querySelector('[data-sprice]');
+
+    div.querySelectorAll('[data-mode-btn]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mode = btn.dataset.modeBtn;
+        modeInput.value = mode;
+        div.querySelectorAll('[data-mode-btn]').forEach(b => b.className = 'px-2.5 py-1 rounded-full bg-paper2 text-slate');
+        btn.className = 'px-2.5 py-1 rounded-full bg-ink text-paper';
+        existingBlock.classList.toggle('hidden', mode !== 'existing');
+        newBlock.classList.toggle('hidden', mode !== 'new');
+      });
+    });
+
+    productSelect.addEventListener('change', () => {
+      const p = PRODUCTS.find(p => p.id === productSelect.value);
+      if (p) {
+        pprice.value = p.purchase_price_per_box;
+        sprice.value = p.sale_price_per_box;
+        recalc();
+      }
+    });
+
+    div.querySelector('[data-remove]').addEventListener('click', () => {
+      if (container.children.length > 1) { div.remove(); recalc(); }
+    });
+
+    div.querySelectorAll('input').forEach(inp => inp.addEventListener('input', recalc));
+
+    return div;
+  }
+
+  function recalc() {
+    let subtotal = 0;
+    container.querySelectorAll(':scope > div').forEach(row => {
+      const qty = parseFloat(row.querySelector('[data-qty]').value) || 0;
+      const price = parseFloat(row.querySelector('[data-pprice]').value) || 0;
+      const discount = parseFloat(row.querySelector('[data-discount]').value) || 0;
+      const lineTotal = Math.max(0, qty * price - discount);
+      row.querySelector('[data-line-total]').textContent = 'Rs ' + lineTotal.toLocaleString(undefined, {maximumFractionDigits:2});
+      subtotal += lineTotal;
+
+      const modeInput = row.querySelector('[data-mode-input]');
+      let packsPerBox = 1;
+      if (modeInput.value === 'existing') {
+        const p = PRODUCTS.find(p => p.id === row.querySelector('[data-product-select]').value);
+        if (p) packsPerBox = p.packs_per_box;
+      } else {
+        packsPerBox = parseInt(row.querySelector('input[name="new_packs_per_box[]"]').value) || 1;
+      }
+      row.querySelector('[data-packs-hint]').textContent = '= ' + Math.round(qty * packsPerBox) + ' packs';
+    });
+
+    const overallDiscount = parseFloat(document.getElementById('overall-discount').value) || 0;
+    const tax = parseFloat(document.getElementById('tax-input').value) || 0;
+    const grandTotal = Math.max(0, subtotal - overallDiscount + tax);
+
+    document.getElementById('subtotal-display').textContent = 'Rs ' + subtotal.toLocaleString(undefined, {maximumFractionDigits:2});
+    document.getElementById('grandtotal-display').textContent = 'Rs ' + grandTotal.toLocaleString(undefined, {maximumFractionDigits:2});
+
+    const method = document.getElementById('payment-method').value;
+    const cashField = document.getElementById('cash-amount-field');
+    const cashInput = document.getElementById('cash-amount');
+    if (method === 'CASH') { cashInput.value = grandTotal.toFixed(2); cashField.classList.add('hidden'); }
+    else if (method === 'CREDIT') { cashInput.value = '0'; cashField.classList.add('hidden'); }
+    else { cashField.classList.remove('hidden'); }
+
+    const cash = parseFloat(cashInput.value) || 0;
+    const credit = Math.max(0, grandTotal - cash);
+    document.getElementById('cash-display').textContent = 'Rs ' + cash.toLocaleString(undefined, {maximumFractionDigits:2});
+    document.getElementById('credit-display').textContent = 'Rs ' + credit.toLocaleString(undefined, {maximumFractionDigits:2});
+  }
+
+  document.getElementById('add-line').addEventListener('click', () => addRow());
+  document.getElementById('overall-discount').addEventListener('input', recalc);
+  document.getElementById('tax-input').addEventListener('input', recalc);
+  document.getElementById('payment-method').addEventListener('change', recalc);
+  document.getElementById('cash-amount').addEventListener('input', recalc);
+
+  const existingItems = {{ existing_items_json|default('null')|safe }};
+  if (existingItems && existingItems.length) {
+    existingItems.forEach(item => addRow(item));
+  } else {
+    addRow();
+  }
+  recalc();
+</script>
+{% endblock %}

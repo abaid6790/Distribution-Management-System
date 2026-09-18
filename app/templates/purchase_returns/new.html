@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Purchase Return{% endblock %}
+{% block content %}
+<div class="max-w-3xl space-y-6">
+  <div>
+    <a href="{{ url_for('purchase_returns.find_purchase') }}" class="text-sm text-slate hover:text-ink">&larr; Search again</a>
+    <h1 class="font-display text-2xl text-ink mt-2">Return against {{ purchase.invoice_number }}</h1>
+    <p class="text-slate text-sm mt-1">{{ supplier.name }} · {{ supplier.phone }} · purchased {{ purchase.date|shortdate }}</p>
+  </div>
+
+  <form method="post" class="space-y-6">
+    <div class="bg-white border border-line rounded-lg p-6 space-y-4">
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Return date</label>
+        <input type="date" name="date" required id="date-input" value="{{ form.get('date') or '' }}"
+               class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+      </div>
+
+      <table class="w-full text-sm">
+        <thead><tr class="text-left text-slate border-b border-line">
+          <th class="py-2 font-normal">Product</th><th class="py-2 font-normal text-right">Purchased</th>
+          <th class="py-2 font-normal text-right">Already Returned</th><th class="py-2 font-normal text-right">Remaining</th>
+          <th class="py-2 font-normal text-right">Return Qty</th>
+        </tr></thead>
+        <tbody>
+          {% for v in items_view %}
+          <tr class="border-b border-line/60 last:border-0">
+            <td class="py-2.5 text-ink">{{ v.product.name }} <span class="text-xs text-slatelight">({{ v.product.sku }})</span></td>
+            <td class="py-2.5 text-right font-mono text-ink">{{ v.item.quantity_packs }}</td>
+            <td class="py-2.5 text-right font-mono text-ink">{{ v.already_returned }}</td>
+            <td class="py-2.5 text-right font-mono text-ink">{{ v.remaining }}</td>
+            <td class="py-2.5 text-right">
+              <input type="hidden" name="purchase_item_id[]" value="{{ v.item.id }}" />
+              <input type="number" name="return_qty[]" min="0" max="{{ v.remaining }}" value="0"
+                     class="w-24 rounded-md border border-line bg-white px-2.5 py-1.5 text-sm text-right focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber"
+                     {{ 'disabled' if v.remaining <= 0 else '' }} />
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Notes</label>
+        <input name="notes" value="{{ form.get('notes','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+      </div>
+    </div>
+
+    {% if errors %}
+    <div class="rounded-md border border-rust/30 bg-rust/5 px-3.5 py-2.5 text-sm text-rust space-y-0.5">
+      {% for e in errors %}<div>{{ e }}</div>{% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="flex justify-end gap-2">
+      <a href="{{ url_for('purchase_returns.find_purchase') }}" class="rounded-md px-4 py-2 text-sm font-medium border border-line text-ink hover:bg-paper2 transition-colors">Cancel</a>
+      <button type="submit" class="rounded-md px-4 py-2 text-sm font-medium bg-ink text-paper hover:bg-ink2 transition-colors">Create return</button>
+    </div>
+  </form>
+</div>
+<script>
+  const di = document.getElementById('date-input');
+  di.max = new Date().toISOString().slice(0,10);
+  if (!di.value) di.value = new Date().toISOString().slice(0,10);
+</script>
+{% endblock %}

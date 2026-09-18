@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>{% block doc_title %}Document{% endblock %} — {{ business.business_name }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'IBM Plex Sans', sans-serif;
+      color: #14202E;
+      margin: 0;
+      background: #F6F4EF;
+    }
+    .sheet {
+      max-width: {{ '800px' if printing.paper_size == 'A4' else '340px' }};
+      margin: 24px auto;
+      background: white;
+      padding: {{ printing.margin_mm }}mm;
+      border: 1px solid #DCD8CC;
+      border-radius: 8px;
+    }
+    .toolbar {
+      max-width: {{ '800px' if printing.paper_size == 'A4' else '340px' }};
+      margin: 16px auto 0;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .toolbar button {
+      background: #14202E;
+      color: #F6F4EF;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    h1.doc-title { font-family: 'Space Grotesk', sans-serif; font-size: 20px; margin: 0 0 2px; }
+    .muted { color: #4A5B70; font-size: 13px; }
+    .header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #DCD8CC; }
+    .biz-name { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 16px 0; }
+    th { text-align: left; color: #4A5B70; font-weight: 500; border-bottom: 1px solid #DCD8CC; padding: 6px 4px; }
+    td { padding: 6px 4px; border-bottom: 1px solid #EEECE4; }
+    .num { text-align: right; font-family: 'IBM Plex Mono', monospace; }
+    .totals { margin-left: auto; width: 260px; font-size: 13px; }
+    .totals div { display: flex; justify-content: space-between; padding: 4px 0; }
+    .totals .grand { font-weight: 600; font-size: 15px; border-top: 1px solid #14202E; margin-top: 4px; padding-top: 8px; }
+    .footer-text { margin-top: 24px; padding-top: 12px; border-top: 1px solid #DCD8CC; font-size: 12px; color: #4A5B70; }
+    .status-pill { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #EEECE4; }
+    @media print {
+      body { background: white; }
+      .toolbar { display: none; }
+      .sheet { border: none; margin: 0; max-width: none; border-radius: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar"><button onclick="window.print()">Print</button></div>
+  <div class="sheet">
+    <div class="header-row">
+      <div>
+        {% if printing.show_business_info %}
+        <div class="biz-name">{{ business.business_name }}</div>
+        {% if business.address %}<div class="muted">{{ business.address }}</div>{% endif %}
+        {% if business.phone %}<div class="muted">{{ business.phone }}{% if business.email %} · {{ business.email }}{% endif %}</div>{% endif %}
+        {% endif %}
+      </div>
+      <div style="text-align:right">
+        <h1 class="doc-title">{% block doc_heading %}{% endblock %}</h1>
+        {% block doc_meta %}{% endblock %}
+      </div>
+    </div>
+
+    {% block doc_body %}{% endblock %}
+
+    {% if printing.footer_text %}
+    <div class="footer-text">{{ printing.footer_text }}</div>
+    {% endif %}
+  </div>
+</body>
+</html>

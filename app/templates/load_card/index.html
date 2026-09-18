@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Load Card{% endblock %}
+{% block content %}
+<div class="max-w-[1000px] space-y-6 print:max-w-none">
+  <div class="flex items-center justify-between flex-wrap gap-3 print:hidden">
+    <div>
+      <h1 class="font-display text-2xl text-ink">Load Card</h1>
+      <p class="text-slate text-sm mt-1">Generated straight from that day's sales — no separate data entry.</p>
+    </div>
+    <button onclick="window.print()" class="rounded-md px-4 py-2 text-sm font-medium border border-line text-ink hover:bg-paper2 transition-colors">Print</button>
+  </div>
+
+  <form method="get" class="flex flex-wrap items-end gap-3 print:hidden">
+    <div class="space-y-1.5">
+      <label class="text-xs text-slate">Date</label>
+      <input type="date" name="date" value="{{ date_str }}" class="rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+    </div>
+    <div class="space-y-1.5">
+      <label class="text-xs text-slate">Salesman</label>
+      <select name="salesman_id" class="rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber">
+        <option value="">All</option>
+        {% for e in employees %}<option value="{{ e.id }}" {{ 'selected' if salesman_id == e.id else '' }}>{{ e.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="space-y-1.5">
+      <label class="text-xs text-slate">Customer</label>
+      <select name="customer_id" class="rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber">
+        <option value="">All</option>
+        {% for c in customers %}<option value="{{ c.id }}" {{ 'selected' if customer_id == c.id else '' }}>{{ c.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="space-y-1.5">
+      <label class="text-xs text-slate">Product</label>
+      <select name="product_id" class="rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber">
+        <option value="">All</option>
+        {% for p in products %}<option value="{{ p.id }}" {{ 'selected' if product_id == p.id else '' }}>{{ p.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="rounded-md px-4 py-2 text-sm font-medium border border-line text-ink hover:bg-paper2 transition-colors">Filter</button>
+  </form>
+
+  <div class="hidden print:block mb-4">
+    <h1 class="font-display text-xl text-ink">Load Card — {{ date_str }}</h1>
+  </div>
+
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line">
+        <th class="px-5 py-3 font-normal">Customer</th><th class="px-5 py-3 font-normal">Product</th>
+        <th class="px-5 py-3 font-normal text-right">Quantity (packs)</th><th class="px-5 py-3 font-normal text-right">Total Amount</th>
+      </tr></thead>
+      <tbody>
+        {% if rows|length == 0 %}
+        <tr><td colspan="4" class="px-5 py-10 text-center text-slatelight">No sales recorded for this date.</td></tr>
+        {% else %}
+        {% for r in rows %}
+        <tr class="border-b border-line/60 last:border-0">
+          <td class="px-5 py-3 text-ink">{{ r.customer }}</td>
+          <td class="px-5 py-3 text-ink">{{ r.product }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.quantity }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.total|money }}</td>
+        </tr>
+        {% endfor %}
+        <tr class="bg-paper2/40 font-medium">
+          <td class="px-5 py-3 text-ink" colspan="3">Total</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ grand_total|money }}</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

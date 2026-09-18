@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<div class="max-w-[1000px] space-y-6">
+  <div class="flex items-center justify-between flex-wrap gap-3">
+    <div>
+      <h1 class="font-display text-2xl text-ink">Users</h1>
+      <p class="text-slate text-sm mt-1">Who can log in, and what they can see once they do.</p>
+    </div>
+    <a href="{{ url_for('users.new_user') }}" class="rounded-md bg-ink text-paper font-medium px-4 py-2 text-sm hover:bg-ink2 transition-colors">+ Add User</a>
+  </div>
+
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line">
+        <th class="px-5 py-3 font-normal">Name</th><th class="px-5 py-3 font-normal">Username</th><th class="px-5 py-3 font-normal">Role</th>
+        <th class="px-5 py-3 font-normal">Access</th><th class="px-5 py-3 font-normal">Status</th><th class="px-5 py-3 font-normal"></th>
+      </tr></thead>
+      <tbody>
+        {% for u in users %}
+        <tr class="border-b border-line/60 last:border-0 hover:bg-paper2/40">
+          <td class="px-5 py-3 text-ink font-medium">{{ u.full_name }}</td>
+          <td class="px-5 py-3 font-mono text-ink">{{ u.username }}</td>
+          <td class="px-5 py-3 text-ink">{{ u.role|title }}</td>
+          <td class="px-5 py-3 text-ink">
+            {% if u.role == 'ADMIN' %}
+            <span class="text-xs px-2 py-0.5 rounded-full bg-amber/15 text-amberdark">Full access</span>
+            {% else %}
+            <span class="text-xs text-slate">{{ (u.permissions or [])|length }} module{{ 's' if (u.permissions or [])|length != 1 else '' }}</span>
+            {% endif %}
+          </td>
+          <td class="px-5 py-3">
+            {% if not u.is_active %}
+            <span class="text-xs px-2 py-0.5 rounded-full bg-slate/10 text-slate">Inactive</span>
+            {% elif u.must_change_password %}
+            <span class="text-xs px-2 py-0.5 rounded-full bg-amber/15 text-amberdark">Pending first login</span>
+            {% else %}
+            <span class="text-xs px-2 py-0.5 rounded-full bg-forest/10 text-forest">Active</span>
+            {% endif %}
+          </td>
+          <td class="px-5 py-3 text-right whitespace-nowrap">
+            <a href="{{ url_for('users.edit_user', user_id=u.id) }}" class="text-slate hover:text-ink text-sm">Edit</a>
+            <form method="post" action="{{ url_for('users.reset_password', user_id=u.id) }}" class="inline" onsubmit="return confirm('Generate a new password for {{ u.full_name }}? Their current password will stop working immediately.');">
+              <button type="submit" class="text-slate hover:text-ink text-sm ml-3">Reset password</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

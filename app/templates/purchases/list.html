@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Purchases{% endblock %}
+{% block content %}
+<div class="max-w-[1200px] space-y-6">
+  <div class="flex items-center justify-between flex-wrap gap-3">
+    <div>
+      <h1 class="font-display text-2xl text-ink">Purchases</h1>
+      <p class="text-slate text-sm mt-1">Every purchase invoice, with suppliers created automatically.</p>
+    </div>
+    <a href="{{ url_for('purchases.new_purchase') }}" class="rounded-md bg-ink text-paper font-medium px-4 py-2 text-sm hover:bg-ink2 transition-colors">+ New Purchase</a>
+  </div>
+
+  <form method="get" class="w-full sm:w-80">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search invoice number, supplier, or phone"
+           class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+  </form>
+
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line">
+        <th class="px-5 py-3 font-normal">Invoice</th><th class="px-5 py-3 font-normal">Date</th><th class="px-5 py-3 font-normal">Supplier</th>
+        <th class="px-5 py-3 font-normal">Status</th><th class="px-5 py-3 font-normal text-right">Cash</th><th class="px-5 py-3 font-normal text-right">Credit</th><th class="px-5 py-3 font-normal text-right">Total</th><th class="px-5 py-3 font-normal"></th>
+      </tr></thead>
+      <tbody>
+        {% if rows|length == 0 %}
+        <tr><td colspan="8" class="px-5 py-10 text-center text-slatelight">{{ "No purchases match your search." if q else "No purchases yet. Record your first one to get started." }}</td></tr>
+        {% else %}
+        {% for p in rows %}
+        <tr class="border-b border-line/60 last:border-0 hover:bg-paper2/40">
+          <td class="px-5 py-3 font-mono text-ink">{{ p.invoice_number }}</td>
+          <td class="px-5 py-3 text-ink">{{ p.date|shortdate }}</td>
+          <td class="px-5 py-3 text-ink">
+            <div>{{ p.supplier.name }}</div>
+            <div class="text-xs text-slatelight">{{ p.supplier.phone }}</div>
+          </td>
+          <td class="px-5 py-3">
+            {% set map = {'PAID':'bg-forest/10 text-forest','PARTIALLY_PAID':'bg-amber/15 text-amberdark','CREDIT':'bg-rust/10 text-rust'} %}
+            {% set labels = {'PAID':'Paid','PARTIALLY_PAID':'Partial','CREDIT':'Credit'} %}
+            <span class="text-xs px-2 py-0.5 rounded-full {{ map[p.payment_status] }}">{{ labels[p.payment_status] }}</span>
+          </td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ p.cash_amount|money2 }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ p.credit_amount|money2 }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink font-medium">{{ p.grand_total|money2 }}</td>
+          <td class="px-5 py-3 text-right whitespace-nowrap">
+            <a href="{{ url_for('invoices.print_purchase', purchase_id=p.id) }}" target="_blank" class="text-slate hover:text-ink text-sm">Print</a>
+            <a href="{{ url_for('purchases.edit_purchase', purchase_id=p.id) }}" class="text-slate hover:text-ink text-sm ml-3">Edit</a>
+            <form method="post" action="{{ url_for('purchases.delete_purchase', purchase_id=p.id) }}" class="inline" onsubmit="return confirm('Delete purchase {{ p.invoice_number }}? This cannot be undone. The invoice number will never be reused.');">
+              <button type="submit" class="text-slate hover:text-rust text-sm ml-3">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

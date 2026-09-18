@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit Employee' if employee else 'Add Employee' }}{% endblock %}
+{% block content %}
+<div class="max-w-md space-y-6">
+  <h1 class="font-display text-2xl text-ink">{{ 'Edit Employee' if employee else 'Add Employee' }}</h1>
+
+  <form method="post" class="bg-white border border-line rounded-lg p-6 space-y-4">
+    {% if employee %}
+    <div class="space-y-1.5">
+      <label class="text-sm text-slate">Employee code</label>
+      <input value="{{ employee.employee_code }}" disabled class="w-full rounded-md border border-line bg-paper2 px-3.5 py-2 text-sm text-slate" />
+    </div>
+    {% endif %}
+    <div class="space-y-1.5">
+      <label class="text-sm text-slate">Name</label>
+      <input name="name" required value="{{ form.get('name','') }}" placeholder="e.g. Ahmed Khan"
+             class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+    </div>
+    <div class="space-y-1.5">
+      <label class="text-sm text-slate">Phone</label>
+      <input name="phone" value="{{ form.get('phone','') }}" placeholder="03xx-xxxxxxx"
+             class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+    </div>
+    <div class="space-y-1.5">
+      <label class="text-sm text-slate">Address</label>
+      <input name="address" value="{{ form.get('address','') }}"
+             class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+    </div>
+    <div class="space-y-1.5">
+      <label class="text-sm text-slate">CNIC</label>
+      <input name="cnic" value="{{ form.get('cnic','') }}" placeholder="xxxxx-xxxxxxx-x"
+             class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+    </div>
+    <div class="space-y-1.5">
+      <label class="text-sm text-slate">Email</label>
+      <input type="email" name="email" value="{{ form.get('email','') }}" placeholder="name@example.com"
+             class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+    </div>
+    <label class="flex items-center gap-2.5">
+      <input type="checkbox" name="is_active" {{ 'checked' if form.get('is_active', True) else '' }} class="w-4 h-4 accent-forest" />
+      <span class="text-sm text-ink">Active</span>
+    </label>
+
+    {% if errors %}
+    <div class="rounded-md border border-rust/30 bg-rust/5 px-3.5 py-2.5 text-sm text-rust space-y-0.5">
+      {% for e in errors %}<div>{{ e }}</div>{% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="flex justify-end gap-2 pt-2">
+      <a href="{{ url_for('employees.list_employees') }}" class="rounded-md px-4 py-2 text-sm font-medium border border-line text-ink hover:bg-paper2 transition-colors">Cancel</a>
+      <button type="submit" class="rounded-md px-4 py-2 text-sm font-medium bg-ink text-paper hover:bg-ink2 transition-colors">{{ 'Save changes' if employee else 'Add employee' }}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

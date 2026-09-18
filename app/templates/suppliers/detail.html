@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}{{ supplier.name }}{% endblock %}
+{% block content %}
+<div class="max-w-3xl space-y-6">
+  <div>
+    <a href="{{ url_for('suppliers.list_suppliers') }}" class="text-sm text-slate hover:text-ink">&larr; Suppliers</a>
+    <h1 class="font-display text-2xl text-ink mt-2">{{ supplier.name }}</h1>
+    <p class="text-slate text-sm mt-1">{{ supplier.phone }} · {{ supplier.address }}</p>
+  </div>
+
+  <div class="grid grid-cols-3 gap-3">
+    <div class="rounded-lg border border-line bg-white px-4 py-3.5">
+      <div class="text-xs text-slate mb-1">Total Credit Purchases</div>
+      <div class="font-mono text-base text-ink">{{ balance.total_credit|money }}</div>
+    </div>
+    <div class="rounded-lg border border-line bg-white px-4 py-3.5">
+      <div class="text-xs text-slate mb-1">Paid</div>
+      <div class="font-mono text-base text-forest">{{ balance.total_paid|money }}</div>
+    </div>
+    <div class="rounded-lg border border-line bg-white px-4 py-3.5">
+      <div class="text-xs text-slate mb-1">Pending</div>
+      <div class="font-mono text-base text-rust">{{ balance.pending|money }}</div>
+    </div>
+  </div>
+
+  {% if balance.pending > 0 %}
+  <div class="bg-white border border-line rounded-lg p-6 space-y-4">
+    <h2 class="font-display text-sm text-ink">Pay supplier</h2>
+    <form method="post" action="{{ url_for('creditors.pay_supplier', supplier_id=supplier.id) }}" class="space-y-4">
+      <div class="grid grid-cols-3 gap-4">
+        <div class="space-y-1.5">
+          <label class="text-sm text-slate">Amount</label>
+          <input type="number" name="amount" min="0.01" step="0.01" max="{{ balance.pending }}" required
+                 class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-sm text-slate">Date</label>
+          <input type="date" name="date" required id="pay-date"
+                 class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-sm text-slate">Method</label>
+          <select name="payment_method" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber">
+            <option value="CASH">Cash</option>
+          </select>
+        </div>
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Notes</label>
+        <input name="notes" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+      </div>
+      {% if payment_error %}
+      <div class="rounded-md border border-rust/30 bg-rust/5 px-3.5 py-2.5 text-sm text-rust">{{ payment_error }}</div>
+      {% endif %}
+      <button type="submit" class="rounded-md px-4 py-2 text-sm font-medium bg-ink text-paper hover:bg-ink2 transition-colors">Record payment</button>
+    </form>
+  </div>
+  <script>
+    const pd = document.getElementById('pay-date');
+    pd.max = new Date().toISOString().slice(0,10);
+    pd.value = new Date().toISOString().slice(0,10);
+  </script>
+  {% endif %}
+
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <div class="px-5 py-3.5 border-b border-line"><h2 class="font-display text-sm text-ink">Purchase history</h2></div>
+    <div class="px-5 py-4">
+      {% if purchases|length == 0 %}
+      <p class="text-sm text-slatelight text-center py-6">No invoices yet.</p>
+      {% else %}
+      <table class="w-full text-sm">
+        <thead><tr class="text-left text-slate border-b border-line">
+          <th class="py-2 font-normal">Invoice</th><th class="py-2 font-normal">Date</th>
+          <th class="py-2 font-normal text-right">Total</th><th class="py-2 font-normal text-right">Paid</th><th class="py-2 font-normal text-right">Credit</th>
+        </tr></thead>
+        <tbody>
+          {% for p in purchases %}
+          <tr class="border-b border-line/60 last:border-0">
+            <td class="py-2.5 font-mono text-ink">{{ p.invoice_number }}</td>
+            <td class="py-2.5 text-ink">{{ p.date|shortdate }}</td>
+            <td class="py-2.5 text-right font-mono text-ink">{{ p.grand_total|money }}</td>
+            <td class="py-2.5 text-right font-mono text-forest">{{ p.cash_amount|money }}</td>
+            <td class="py-2.5 text-right font-mono text-rust">{{ p.credit_amount|money }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <div class="px-5 py-3.5 border-b border-line"><h2 class="font-display text-sm text-ink">Payment history</h2></div>
+    <div class="px-5 py-4">
+      {% if payments|length == 0 %}
+      <p class="text-sm text-slatelight text-center py-6">No payments recorded yet.</p>
+      {% else %}
+      <table class="w-full text-sm">
+        <thead><tr class="text-left text-slate border-b border-line">
+          <th class="py-2 font-normal">Date</th><th class="py-2 font-normal">Method</th><th class="py-2 font-normal">Notes</th><th class="py-2 font-normal text-right">Amount</th>
+        </tr></thead>
+        <tbody>
+          {% for p in payments %}
+          <tr class="border-b border-line/60 last:border-0">
+            <td class="py-2.5 text-ink">{{ p.date|shortdate }}</td>
+            <td class="py-2.5 text-ink">{{ p.payment_method|title }}</td>
+            <td class="py-2.5 text-ink">{{ p.notes or '—' }}</td>
+            <td class="py-2.5 text-right font-mono text-forest">{{ p.amount|money }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Debtors{% endblock %}
+{% block content %}
+<div class="max-w-[1000px] space-y-6">
+  <div>
+    <h1 class="font-display text-2xl text-ink">Debtors</h1>
+    <p class="text-slate text-sm mt-1">Customers with an outstanding balance from credit sales.</p>
+  </div>
+
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line">
+        <th class="px-5 py-3 font-normal">Customer</th><th class="px-5 py-3 font-normal">Phone</th>
+        <th class="px-5 py-3 font-normal text-right">Total Credit</th><th class="px-5 py-3 font-normal text-right">Received</th><th class="px-5 py-3 font-normal text-right">Pending</th>
+      </tr></thead>
+      <tbody>
+        {% if rows|length == 0 %}
+        <tr><td colspan="5" class="px-5 py-10 text-center text-slatelight">No outstanding balances. Every customer is settled up.</td></tr>
+        {% else %}
+        {% for r in rows %}
+        <tr class="border-b border-line/60 last:border-0 hover:bg-paper2/40 cursor-pointer" onclick="window.location='{{ url_for('customers.view_customer', customer_id=r.customer.id) }}'">
+          <td class="px-5 py-3 text-ink font-medium">{{ r.customer.name }}</td>
+          <td class="px-5 py-3 text-ink">{{ r.customer.phone }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.balance.total_credit|money }}</td>
+          <td class="px-5 py-3 text-right font-mono text-forest">{{ r.balance.total_paid|money }}</td>
+          <td class="px-5 py-3 text-right font-mono text-rust font-medium">{{ r.balance.pending|money }}</td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

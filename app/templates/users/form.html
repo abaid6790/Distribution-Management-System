@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit User' if user else 'Add User' }}{% endblock %}
+{% block content %}
+<div class="max-w-2xl space-y-6">
+  <div>
+    <h1 class="font-display text-2xl text-ink">{{ 'Edit User' if user else 'Add User' }}</h1>
+    {% if not user %}
+    <p class="text-slate text-sm mt-1">Pick an existing employee or add a new one, then choose what they can access.</p>
+    {% endif %}
+  </div>
+
+  <form method="post" class="space-y-6">
+    {% if not user %}
+    <div class="bg-white border border-line rounded-lg p-6 space-y-4">
+      <h2 class="font-display text-sm text-ink">Employee</h2>
+      <div class="flex gap-1 text-xs">
+        <button type="button" data-emp-mode="existing" class="px-2.5 py-1 rounded-full bg-ink text-paper">Existing employee</button>
+        <button type="button" data-emp-mode="new" class="px-2.5 py-1 rounded-full bg-paper2 text-slate">New employee</button>
+      </div>
+      <input type="hidden" name="employee_mode" id="employee-mode" value="existing" />
+
+      <div id="existing-block">
+        <label class="text-sm text-slate">Employee</label>
+        <select name="employee_id" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber mt-1.5">
+          <option value="">Select employee…</option>
+          {% for e in available_employees %}
+          <option value="{{ e.id }}">{{ e.name }} ({{ e.employee_code }})</option>
+          {% endfor %}
+        </select>
+        {% if not available_employees %}
+        <p class="text-xs text-slatelight mt-1.5">Every active employee already has a login. Add a new employee instead, or add one from the Employees page first.</p>
+        {% endif %}
+      </div>
+
+      <div id="new-block" class="hidden grid grid-cols-2 gap-4">
+        <div class="space-y-1.5 col-span-2">
+          <label class="text-sm text-slate">Full name</label>
+          <input name="new_employee_name" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-sm text-slate">Phone</label>
+          <input name="new_employee_phone" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-sm text-slate">Email</label>
+          <input type="email" name="new_employee_email" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white border border-line rounded-lg p-6 space-y-4">
+      <h2 class="font-display text-sm text-ink">Login</h2>
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Username</label>
+        <input name="username" required value="{{ form.get('username','') }}" placeholder="e.g. ahmed.khan" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+        <p class="text-xs text-slatelight">A password is generated automatically and shown once you save — they'll set their own on first login.</p>
+      </div>
+    </div>
+    {% else %}
+    <div class="bg-white border border-line rounded-lg p-6 space-y-3">
+      <h2 class="font-display text-sm text-ink">{{ user.full_name }}</h2>
+      <p class="text-sm text-slate">Username: <span class="font-mono text-ink">{{ user.username }}</span></p>
+      <label class="flex items-center gap-2.5 pt-1">
+        <input type="checkbox" name="is_active" {{ 'checked' if form.get('is_active', True) else '' }} class="w-4 h-4 accent-forest" />
+        <span class="text-sm text-ink">Active (can sign in)</span>
+      </label>
+    </div>
+    {% endif %}
+
+    <div class="bg-white border border-line rounded-lg p-6 space-y-4">
+      <h2 class="font-display text-sm text-ink">Role & access</h2>
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Role</label>
+        <select name="role" id="role-select" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber">
+          {% for r in roles %}
+          <option value="{{ r }}" {{ 'selected' if form.get('role', 'SALESMAN') == r else '' }}>{{ r|title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div id="permissions-block">
+        <div class="text-sm text-slate mb-2">Feature access — pick exactly what this person can see and use</div>
+        <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+          {% for group_name, modules in groups.items() %}
+          <div>
+            <div class="text-xs text-slate mb-1.5">{{ group_name }}</div>
+            <div class="space-y-1.5">
+              {% for key, label in modules %}
+              <label class="flex items-center gap-2 text-sm text-ink">
+                <input type="checkbox" name="permissions" value="{{ key }}" class="perm-checkbox w-4 h-4 accent-forest" {{ 'checked' if key in form.get('permissions', []) else '' }} />
+                {{ label }}
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div id="admin-note" class="hidden rounded-md border border-amber/30 bg-amber/5 px-3.5 py-2.5 text-sm text-amberdark">
+        Administrators always have full access to every module — there's nothing to configure here.
+      </div>
+    </div>
+
+    {% if errors %}
+    <div class="rounded-md border border-rust/30 bg-rust/5 px-3.5 py-2.5 text-sm text-rust space-y-0.5">
+      {% for e in errors %}<div>{{ e }}</div>{% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="flex justify-end gap-2">
+      <a href="{{ url_for('users.list_users') }}" class="rounded-md px-4 py-2 text-sm font-medium border border-line text-ink hover:bg-paper2 transition-colors">Cancel</a>
+      <button type="submit" class="rounded-md px-4 py-2 text-sm font-medium bg-ink text-paper hover:bg-ink2 transition-colors">{{ 'Save changes' if user else 'Create user' }}</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  const ROLE_DEFAULTS = {{ role_defaults|tojson }};
+  const roleSelect = document.getElementById('role-select');
+  const permBlock = document.getElementById('permissions-block');
+  const adminNote = document.getElementById('admin-note');
+  const isEditing = {{ 'true' if user else 'false' }};
+
+  function applyRoleUI(applyDefaults) {
+    const role = roleSelect.value;
+    if (role === 'ADMIN') {
+      permBlock.classList.add('hidden');
+      adminNote.classList.remove('hidden');
+    } else {
+      permBlock.classList.remove('hidden');
+      adminNote.classList.add('hidden');
+      if (applyDefaults) {
+        const defaults = new Set(ROLE_DEFAULTS[role] || []);
+        document.querySelectorAll('.perm-checkbox').forEach(cb => { cb.checked = defaults.has(cb.value); });
+      }
+    }
+  }
+
+  roleSelect.addEventListener('change', () => applyRoleUI(true));
+  applyRoleUI(!isEditing);
+
+  {% if not user %}
+  const empModeInput = document.getElementById('employee-mode');
+  const existingBlock = document.getElementById('existing-block');
+  const newBlock = document.getElementById('new-block');
+  document.querySelectorAll('[data-emp-mode]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const mode = btn.dataset.empMode;
+      empModeInput.value = mode;
+      document.querySelectorAll('[data-emp-mode]').forEach(b => b.className = 'px-2.5 py-1 rounded-full bg-paper2 text-slate');
+      btn.className = 'px-2.5 py-1 rounded-full bg-ink text-paper';
+      existingBlock.classList.toggle('hidden', mode !== 'existing');
+      newBlock.classList.toggle('hidden', mode !== 'new');
+    });
+  });
+  {% endif %}
+</script>
+{% endblock %}

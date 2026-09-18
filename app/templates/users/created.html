@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Password reset' if is_reset else 'User created' }}{% endblock %}
+{% block content %}
+<div class="max-w-md space-y-6">
+  <div>
+    <h1 class="font-display text-2xl text-ink">{{ 'Password reset' if is_reset else 'User created' }}</h1>
+    <p class="text-slate text-sm mt-1">
+      {% if is_reset %}
+      A new password has been generated for <strong>{{ user.full_name }}</strong>.
+      {% else %}
+      <strong>{{ user.full_name }}</strong> can now sign in with the credentials below.
+      {% endif %}
+    </p>
+  </div>
+
+  <div class="bg-white border-2 border-amber/40 rounded-lg p-6 space-y-4">
+    <div class="rounded-md border border-amber/30 bg-amber/5 px-3.5 py-2.5 text-sm text-amberdark">
+      This password is shown once and cannot be retrieved later. Share it with {{ user.full_name.split(' ')[0] }} now, then use "Reset password" from the Users list if it's ever lost.
+    </div>
+
+    <div class="space-y-1.5">
+      <label class="text-xs text-slate">Username</label>
+      <div class="font-mono text-ink bg-paper2 rounded-md px-3.5 py-2.5 text-sm">{{ user.username }}</div>
+    </div>
+    <div class="space-y-1.5">
+      <label class="text-xs text-slate">Password</label>
+      <div class="font-mono text-ink bg-paper2 rounded-md px-3.5 py-2.5 text-sm" id="pw-display">{{ password }}</div>
+    </div>
+
+    <p class="text-xs text-slatelight">They'll be required to set their own password the first time they sign in.</p>
+  </div>
+
+  <a href="{{ url_for('users.list_users') }}" class="inline-block rounded-md px-4 py-2 text-sm font-medium bg-ink text-paper hover:bg-ink2 transition-colors">Done</a>
+</div>
+{% endblock %}

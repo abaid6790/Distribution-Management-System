@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Add Expense{% endblock %}
+{% block content %}
+<div class="max-w-md space-y-6">
+  <h1 class="font-display text-2xl text-ink">Add Expense</h1>
+
+  <form method="post" class="bg-white border border-line rounded-lg p-6 space-y-4">
+    <div class="space-y-1.5">
+      <label class="text-sm text-slate">Date</label>
+      <input type="date" name="date" required id="date-input" value="{{ form.get('date') or '' }}"
+             class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+    </div>
+    <div class="space-y-1.5">
+      <label class="text-sm text-slate">Category</label>
+      <select name="category" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber">
+        {% for c in categories %}
+        <option value="{{ c }}" {{ 'selected' if form.get('category') == c else '' }}>{{ c }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="space-y-1.5">
+      <label class="text-sm text-slate">Description</label>
+      <input name="description" required value="{{ form.get('description','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+    </div>
+    <div class="grid grid-cols-2 gap-4">
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Amount</label>
+        <input type="number" name="amount" min="0.01" step="0.01" required value="{{ form.get('amount','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Payment method</label>
+        <select name="payment_method" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber">
+          <option value="CASH">Cash</option>
+          <option value="CREDIT">Credit (not yet paid)</option>
+        </select>
+      </div>
+    </div>
+    <div class="space-y-1.5">
+      <label class="text-sm text-slate">Notes</label>
+      <input name="notes" value="{{ form.get('notes','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+    </div>
+
+    {% if errors %}
+    <div class="rounded-md border border-rust/30 bg-rust/5 px-3.5 py-2.5 text-sm text-rust space-y-0.5">
+      {% for e in errors %}<div>{{ e }}</div>{% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="flex justify-end gap-2 pt-2">
+      <a href="{{ url_for('expenses.list_expenses') }}" class="rounded-md px-4 py-2 text-sm font-medium border border-line text-ink hover:bg-paper2 transition-colors">Cancel</a>
+      <button type="submit" class="rounded-md px-4 py-2 text-sm font-medium bg-ink text-paper hover:bg-ink2 transition-colors">Add expense</button>
+    </div>
+  </form>
+</div>
+<script>
+  const di = document.getElementById('date-input');
+  di.max = new Date().toISOString().slice(0,10);
+  if (!di.value) di.value = new Date().toISOString().slice(0,10);
+</script>
+{% endblock %}

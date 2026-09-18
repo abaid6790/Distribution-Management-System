@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Suppliers{% endblock %}
+{% block content %}
+<div class="max-w-[1100px] space-y-6">
+  <div>
+    <h1 class="font-display text-2xl text-ink">Suppliers</h1>
+    <p class="text-slate text-sm mt-1">Created automatically the first time someone appears on a purchase.</p>
+  </div>
+
+  <form method="get" class="w-full sm:w-72">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search by name or phone"
+           class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+  </form>
+
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line">
+        <th class="px-5 py-3 font-normal">Supplier</th><th class="px-5 py-3 font-normal">Phone</th><th class="px-5 py-3 font-normal">Address</th>
+        <th class="px-5 py-3 font-normal text-right">Invoices</th><th class="px-5 py-3 font-normal text-right">Total Purchases</th>
+        <th class="px-5 py-3 font-normal text-right">Paid</th><th class="px-5 py-3 font-normal text-right">Pending</th>
+      </tr></thead>
+      <tbody>
+        {% if rows|length == 0 %}
+        <tr><td colspan="7" class="px-5 py-10 text-center text-slatelight">{{ "No suppliers match your search." if q else "No suppliers yet — they appear here once you record a purchase." }}</td></tr>
+        {% else %}
+        {% for s, total_invoices, total_purchases, total_paid in rows %}
+        {% set bal = balances.get(s.id, {'total_paid': 0, 'pending': 0}) %}
+        <tr class="border-b border-line/60 last:border-0 hover:bg-paper2/40 cursor-pointer" onclick="window.location='{{ url_for('suppliers.view_supplier', supplier_id=s.id) }}'">
+          <td class="px-5 py-3 text-ink font-medium">{{ s.name }}</td>
+          <td class="px-5 py-3 text-ink">{{ s.phone }}</td>
+          <td class="px-5 py-3 text-ink">{{ s.address }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ total_invoices }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ total_purchases|money }}</td>
+          <td class="px-5 py-3 text-right font-mono text-forest">{{ total_paid|money }}</td>
+          <td class="px-5 py-3 text-right font-mono text-rust">{{ bal.pending|money }}</td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

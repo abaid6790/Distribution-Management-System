@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Access denied{% endblock %}
+{% block content %}
+<div class="max-w-md mx-auto text-center py-20">
+  <div class="w-12 h-12 rounded-full bg-rust/10 text-rust flex items-center justify-center mx-auto mb-4 font-display text-xl">!</div>
+  <h1 class="font-display text-xl text-ink mb-2">You don't have access to this</h1>
+  <p class="text-slate text-sm mb-6">Your account doesn't have permission for this section. If you think this is a mistake, ask an administrator to update your access under Users.</p>
+  <a href="{{ url_for('main.dashboard') }}" class="inline-block rounded-md px-4 py-2 text-sm font-medium bg-ink text-paper hover:bg-ink2 transition-colors">Back to dashboard</a>
+</div>
+{% endblock %}

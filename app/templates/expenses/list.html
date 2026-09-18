@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Expenses{% endblock %}
+{% block content %}
+<div class="max-w-[1000px] space-y-6">
+  <div class="flex items-center justify-between flex-wrap gap-3">
+    <div>
+      <h1 class="font-display text-2xl text-ink">Expenses</h1>
+      <p class="text-slate text-sm mt-1">Every cash expense posts automatically to the cash book.</p>
+    </div>
+    <a href="{{ url_for('expenses.new_expense') }}" class="rounded-md bg-ink text-paper font-medium px-4 py-2 text-sm hover:bg-ink2 transition-colors">+ Add Expense</a>
+  </div>
+
+  <div class="rounded-lg border border-line bg-white px-5 py-4 flex items-center justify-between">
+    <span class="text-sm text-slate">Total recorded</span>
+    <span class="font-mono text-lg text-ink">{{ total|money }}</span>
+  </div>
+
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line">
+        <th class="px-5 py-3 font-normal">Date</th><th class="px-5 py-3 font-normal">Category</th><th class="px-5 py-3 font-normal">Description</th>
+        <th class="px-5 py-3 font-normal">Method</th><th class="px-5 py-3 font-normal text-right">Amount</th>
+      </tr></thead>
+      <tbody>
+        {% if rows|length == 0 %}
+        <tr><td colspan="5" class="px-5 py-10 text-center text-slatelight">No expenses recorded yet.</td></tr>
+        {% else %}
+        {% for e in rows %}
+        <tr class="border-b border-line/60 last:border-0">
+          <td class="px-5 py-3 text-ink">{{ e.date|shortdate }}</td>
+          <td class="px-5 py-3 text-ink">{{ e.category }}</td>
+          <td class="px-5 py-3 text-ink">{{ e.description }}</td>
+          <td class="px-5 py-3 text-ink">{{ e.payment_method|title }}</td>
+          <td class="px-5 py-3 text-right font-mono text-rust">{{ e.amount|money }}</td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

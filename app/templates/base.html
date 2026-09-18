@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Ledger{% endblock %} — Distribution Management System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: '#14202E',
+            ink2: '#1C2C3D',
+            paper: '#F6F4EF',
+            paper2: '#EEECE4',
+            slate: '#4A5B70',
+            slatelight: '#7C8BA0',
+            amber: '#C9822E',
+            amberdark: '#A5691F',
+            forest: '#2F6B4F',
+            rust: '#AE4A3C',
+            line: '#DCD8CC',
+          },
+          fontFamily: {
+            display: ['"Space Grotesk"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            body: ['"IBM Plex Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            mono: ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body class="min-h-full bg-paper text-ink font-body antialiased">
+  {% if current_user.is_authenticated %}
+  <div class="flex min-h-screen w-full">
+    <aside class="hidden md:flex md:w-64 lg:w-72 shrink-0 flex-col bg-ink text-paper h-screen sticky top-0 overflow-y-auto">
+      <div class="px-6 pt-6 pb-5 flex items-center gap-3 border-b border-white/10">
+        <span class="w-8 h-8 rounded-sm bg-amber flex items-center justify-center font-display font-semibold text-ink">L</span>
+        <div>
+          <div class="font-display text-base leading-tight">Ledger</div>
+          <div class="text-[11px] text-paper/40 leading-tight">{{ current_user.role.replace('_',' ') }}</div>
+        </div>
+      </div>
+
+      <nav class="flex-1 px-3 py-4 space-y-6">
+        {% for group in nav_groups %}
+        <div>
+          <div class="px-3 mb-1.5 text-[11px] text-paper/35 tracking-wide">{{ group.title }}</div>
+          <div class="space-y-0.5">
+            {% for item in group.links %}
+            <a href="{{ item.href }}"
+               class="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors {{ 'bg-white/10 text-paper font-medium' if request.path.startswith(item.href) else 'text-paper/65 hover:bg-white/5 hover:text-paper' }}">
+              {{ item.label }}
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </nav>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0">
+      <header class="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-paper/95 backdrop-blur px-6 lg:px-10 py-3.5">
+        <div class="text-sm text-slate">{{ today_str }}</div>
+        <div class="flex items-center gap-4">
+          <div class="text-right">
+            <div class="text-sm font-medium text-ink">{{ current_user.full_name }}</div>
+            <div class="text-xs text-slatelight">{{ current_user.role.replace('_',' ') }}</div>
+          </div>
+          <div class="w-8 h-8 rounded-full bg-ink text-paper flex items-center justify-center text-xs font-display font-medium">
+            {{ current_user.full_name.split()[0][0]|upper if current_user.full_name else 'U' }}
+          </div>
+          <a href="{{ url_for('account.change_password') }}" class="text-sm text-slate hover:text-ink transition-colors">Password</a>
+          <form action="{{ url_for('auth.logout') }}" method="post">
+            <button type="submit" class="text-sm text-slate hover:text-rust transition-colors">Sign out</button>
+          </form>
+        </div>
+      </header>
+
+      <main class="flex-1 px-6 py-6 lg:px-10 lg:py-8">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+            <div class="mb-5 rounded-md border px-3.5 py-2.5 text-sm {{ 'border-forest/30 bg-forest/5 text-forest' if category == 'success' else 'border-rust/30 bg-rust/5 text-rust' }}">
+              {{ message }}
+            </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+  {% else %}
+    {% block auth_content %}{% endblock %}
+  {% endif %}
+</body>
+</html>

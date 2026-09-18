@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Stock{% endblock %}
+{% block content %}
+<div class="max-w-[1300px] space-y-6">
+  <div>
+    <h1 class="font-display text-2xl text-ink">Stock</h1>
+    <p class="text-slate text-sm mt-1">Purchased, sold, returned, and remaining — for every product, from the same numbers everywhere else in the system.</p>
+  </div>
+
+  <div class="grid grid-cols-2 gap-3">
+    <div class="rounded-lg border border-line bg-white px-4 py-3.5">
+      <div class="text-xs text-slate mb-1">Total Stock Value</div>
+      <div class="font-mono text-base text-ink">{{ total_stock_value|money }}</div>
+    </div>
+    <div class="rounded-lg border border-line bg-white px-4 py-3.5">
+      <div class="text-xs text-slate mb-1">Potential Sales Value</div>
+      <div class="font-mono text-base text-forest">{{ total_potential_value|money }}</div>
+    </div>
+  </div>
+
+  <form method="get" class="w-full sm:w-72">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search by name, SKU, or category"
+           class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+  </form>
+
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line">
+        <th class="px-5 py-3 font-normal">Product</th>
+        <th class="px-5 py-3 font-normal text-right">Purchased</th>
+        <th class="px-5 py-3 font-normal text-right">Sold</th>
+        <th class="px-5 py-3 font-normal text-right">Sale Returned</th>
+        <th class="px-5 py-3 font-normal text-right">Purchase Returned</th>
+        <th class="px-5 py-3 font-normal text-right">Remaining</th>
+        <th class="px-5 py-3 font-normal">Status</th>
+        <th class="px-5 py-3 font-normal text-right">Stock Value</th>
+        <th class="px-5 py-3 font-normal text-right">Potential Value</th>
+      </tr></thead>
+      <tbody>
+        {% if rows|length == 0 %}
+        <tr><td colspan="9" class="px-5 py-10 text-center text-slatelight">{{ "No products match your search." if q else "No products yet." }}</td></tr>
+        {% else %}
+        {% for r in rows %}
+        <tr class="border-b border-line/60 last:border-0 hover:bg-paper2/40">
+          <td class="px-5 py-3">
+            <div class="text-ink font-medium">{{ r.product.name }}</div>
+            <div class="text-xs text-slatelight">{{ r.product.sku }}</div>
+          </td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.purchased|round|int }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.sold|round|int }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.sale_returned|round|int }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.purchase_returned|round|int }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink font-medium">{{ r.remaining|round|int }}</td>
+          <td class="px-5 py-3">
+            {% set map = {'normal':'bg-forest/10 text-forest','low':'bg-amber/15 text-amberdark','out':'bg-rust/10 text-rust'} %}
+            {% set labels = {'normal':'Normal','low':'Low','out':'Out of stock'} %}
+            <span class="text-xs px-2 py-0.5 rounded-full {{ map[r.status] }}">{{ labels[r.status] }}</span>
+          </td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.stock_value|money }}</td>
+          <td class="px-5 py-3 text-right font-mono text-forest">{{ r.potential_value|money }}</td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

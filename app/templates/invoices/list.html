@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Invoices{% endblock %}
+{% block content %}
+<div class="max-w-[1200px] space-y-6">
+  <div>
+    <h1 class="font-display text-2xl text-ink">Invoices</h1>
+    <p class="text-slate text-sm mt-1">Every sale, purchase, return, and payment receipt in one place.</p>
+  </div>
+
+  <form method="get" class="flex flex-wrap items-end gap-3">
+    <div class="space-y-1.5 flex-1 min-w-[200px]">
+      <label class="text-xs text-slate">Search</label>
+      <input type="text" name="q" value="{{ q }}" placeholder="Invoice number or name" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+    </div>
+    <div class="space-y-1.5">
+      <label class="text-xs text-slate">Type</label>
+      <select name="type" class="rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber">
+        <option value="" {{ 'selected' if not type_filter else '' }}>All types</option>
+        <option value="sale" {{ 'selected' if type_filter == 'sale' else '' }}>Sales</option>
+        <option value="purchase" {{ 'selected' if type_filter == 'purchase' else '' }}>Purchases</option>
+        <option value="sale_return" {{ 'selected' if type_filter == 'sale_return' else '' }}>Sale Returns</option>
+        <option value="purchase_return" {{ 'selected' if type_filter == 'purchase_return' else '' }}>Purchase Returns</option>
+        <option value="customer_payment" {{ 'selected' if type_filter == 'customer_payment' else '' }}>Customer Receipts</option>
+        <option value="supplier_payment" {{ 'selected' if type_filter == 'supplier_payment' else '' }}>Supplier Receipts</option>
+      </select>
+    </div>
+    <button type="submit" class="rounded-md px-4 py-2 text-sm font-medium border border-line text-ink hover:bg-paper2 transition-colors">Filter</button>
+  </form>
+
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line">
+        <th class="px-5 py-3 font-normal">Number</th><th class="px-5 py-3 font-normal">Date</th><th class="px-5 py-3 font-normal">Type</th>
+        <th class="px-5 py-3 font-normal">Party</th><th class="px-5 py-3 font-normal text-right">Amount</th><th class="px-5 py-3 font-normal"></th>
+      </tr></thead>
+      <tbody>
+        {% if rows|length == 0 %}
+        <tr><td colspan="6" class="px-5 py-10 text-center text-slatelight">No invoices match your search.</td></tr>
+        {% else %}
+        {% for r in rows %}
+        <tr class="border-b border-line/60 last:border-0 hover:bg-paper2/40">
+          <td class="px-5 py-3 font-mono text-ink">{{ r.number }}</td>
+          <td class="px-5 py-3 text-ink">{{ r.date|shortdate }}</td>
+          <td class="px-5 py-3 text-ink">{{ r.type }}</td>
+          <td class="px-5 py-3 text-ink">{{ r.party }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.amount|money }}</td>
+          <td class="px-5 py-3 text-right">
+            {% set print_url = {
+              'Sale': url_for('invoices.print_sale', sale_id=r.id),
+              'Purchase': url_for('invoices.print_purchase', purchase_id=r.id),
+              'Sale Return': url_for('invoices.print_sale_return', return_id=r.id),
+              'Purchase Return': url_for('invoices.print_purchase_return', return_id=r.id),
+              'Customer Receipt': url_for('invoices.print_customer_payment', payment_id=r.id),
+              'Supplier Receipt': url_for('invoices.print_supplier_payment', payment_id=r.id),
+            } %}
+            <a href="{{ print_url[r.type] }}" target="_blank" class="text-slate hover:text-ink text-sm">View / Print</a>
+          </td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

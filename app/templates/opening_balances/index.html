@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Opening Balances{% endblock %}
+{% block content %}
+<div class="max-w-3xl space-y-6">
+  <div>
+    <h1 class="font-display text-2xl text-ink">Opening Balances</h1>
+    <p class="text-slate text-sm mt-1">Enter existing stock, debtor, and creditor balances when first setting up the system.</p>
+  </div>
+
+  <div class="flex gap-1 border-b border-line">
+    <a href="{{ url_for('opening_balances.index', tab='stock') }}" class="px-4 py-2.5 text-sm border-b-2 -mb-px transition-colors {{ 'border-amber text-ink font-medium' if tab == 'stock' else 'border-transparent text-slate hover:text-ink' }}">Opening Stock</a>
+    <a href="{{ url_for('opening_balances.index', tab='debtors') }}" class="px-4 py-2.5 text-sm border-b-2 -mb-px transition-colors {{ 'border-amber text-ink font-medium' if tab == 'debtors' else 'border-transparent text-slate hover:text-ink' }}">Opening Debtors</a>
+    <a href="{{ url_for('opening_balances.index', tab='creditors') }}" class="px-4 py-2.5 text-sm border-b-2 -mb-px transition-colors {{ 'border-amber text-ink font-medium' if tab == 'creditors' else 'border-transparent text-slate hover:text-ink' }}">Opening Creditors</a>
+  </div>
+
+  {% if errors %}
+  <div class="rounded-md border border-rust/30 bg-rust/5 px-3.5 py-2.5 text-sm text-rust space-y-0.5">
+    {% for e in errors %}<div>{{ e }}</div>{% endfor %}
+  </div>
+  {% endif %}
+
+  {% if tab == 'stock' %}
+  <form method="post" action="{{ url_for('opening_balances.add_opening_stock') }}" class="bg-white border border-line rounded-lg p-6 space-y-4">
+    <div class="grid grid-cols-2 gap-4">
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Product</label>
+        <select name="product_id" required class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber">
+          <option value="">Select product…</option>
+          {% for p in products %}<option value="{{ p.id }}">{{ p.name }} ({{ p.sku }})</option>{% endfor %}
+        </select>
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Quantity (packs)</label>
+        <input type="number" name="quantity_packs" min="1" required value="{{ form.get('quantity_packs','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-4">
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Cost per pack</label>
+        <input type="number" name="cost_per_pack" min="0" step="0.01" required value="{{ form.get('cost_per_pack','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Date</label>
+        <input type="date" name="date" required id="stock-date" value="{{ form.get('date') or '' }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+      </div>
+    </div>
+    <div class="space-y-1.5">
+      <label class="text-sm text-slate">Notes</label>
+      <input name="notes" value="{{ form.get('notes','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+    </div>
+    <button type="submit" class="rounded-md px-4 py-2 text-sm font-medium bg-ink text-paper hover:bg-ink2 transition-colors">Add opening stock</button>
+  </form>
+  <script>document.getElementById('stock-date').valueAsDate = document.getElementById('stock-date').valueAsDate || new Date();</script>
+
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line"><th class="px-5 py-3 font-normal">Product</th><th class="px-5 py-3 font-normal text-right">Quantity</th><th class="px-5 py-3 font-normal text-right">Cost/Pack</th><th class="px-5 py-3 font-normal">Date</th></tr></thead>
+      <tbody>
+        {% if rows|length == 0 %}<tr><td colspan="4" class="px-5 py-8 text-center text-slatelight">No opening stock entered yet.</td></tr>{% endif %}
+        {% for o, p in rows %}
+        <tr class="border-b border-line/60 last:border-0">
+          <td class="px-5 py-3 text-ink">{{ p.name }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ o.quantity_packs }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ o.cost_per_pack|money2 }}</td>
+          <td class="px-5 py-3 text-ink">{{ o.date|shortdate }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if tab == 'debtors' %}
+  <form method="post" action="{{ url_for('opening_balances.add_opening_debtor') }}" class="bg-white border border-line rounded-lg p-6 space-y-4">
+    <div class="grid grid-cols-3 gap-4">
+      <div class="space-y-1.5"><label class="text-sm text-slate">Customer name</label>
+        <input name="customer_name" required value="{{ form.get('customer_name','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+      <div class="space-y-1.5"><label class="text-sm text-slate">Phone</label>
+        <input name="customer_phone" required value="{{ form.get('customer_phone','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+      <div class="space-y-1.5"><label class="text-sm text-slate">Address</label>
+        <input name="customer_address" required value="{{ form.get('customer_address','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+    </div>
+    <div class="grid grid-cols-2 gap-4">
+      <div class="space-y-1.5"><label class="text-sm text-slate">Outstanding amount</label>
+        <input type="number" name="amount" min="0.01" step="0.01" required value="{{ form.get('amount','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+      <div class="space-y-1.5"><label class="text-sm text-slate">Date</label>
+        <input type="date" name="date" required id="debtor-date" value="{{ form.get('date') or '' }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+    </div>
+    <div class="space-y-1.5"><label class="text-sm text-slate">Notes</label>
+      <input name="notes" value="{{ form.get('notes','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+    <p class="text-xs text-slatelight">If this customer already exists (same name, phone, and address), the balance is added to their existing record instead of creating a duplicate.</p>
+    <button type="submit" class="rounded-md px-4 py-2 text-sm font-medium bg-ink text-paper hover:bg-ink2 transition-colors">Add opening balance</button>
+  </form>
+  <script>document.getElementById('debtor-date').valueAsDate = document.getElementById('debtor-date').valueAsDate || new Date();</script>
+
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line"><th class="px-5 py-3 font-normal">Customer</th><th class="px-5 py-3 font-normal text-right">Amount</th><th class="px-5 py-3 font-normal">Date</th></tr></thead>
+      <tbody>
+        {% if rows|length == 0 %}<tr><td colspan="3" class="px-5 py-8 text-center text-slatelight">No opening debtor balances entered yet.</td></tr>{% endif %}
+        {% for o, c in rows %}
+        <tr class="border-b border-line/60 last:border-0">
+          <td class="px-5 py-3 text-ink">{{ c.name }}</td>
+          <td class="px-5 py-3 text-right font-mono text-rust">{{ o.amount|money }}</td>
+          <td class="px-5 py-3 text-ink">{{ o.date|shortdate }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if tab == 'creditors' %}
+  <form method="post" action="{{ url_for('opening_balances.add_opening_creditor') }}" class="bg-white border border-line rounded-lg p-6 space-y-4">
+    <div class="grid grid-cols-3 gap-4">
+      <div class="space-y-1.5"><label class="text-sm text-slate">Supplier name</label>
+        <input name="supplier_name" required value="{{ form.get('supplier_name','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+      <div class="space-y-1.5"><label class="text-sm text-slate">Phone</label>
+        <input name="supplier_phone" required value="{{ form.get('supplier_phone','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+      <div class="space-y-1.5"><label class="text-sm text-slate">Address</label>
+        <input name="supplier_address" required value="{{ form.get('supplier_address','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+    </div>
+    <div class="grid grid-cols-2 gap-4">
+      <div class="space-y-1.5"><label class="text-sm text-slate">Outstanding amount</label>
+        <input type="number" name="amount" min="0.01" step="0.01" required value="{{ form.get('amount','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+      <div class="space-y-1.5"><label class="text-sm text-slate">Date</label>
+        <input type="date" name="date" required id="creditor-date" value="{{ form.get('date') or '' }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+    </div>
+    <div class="space-y-1.5"><label class="text-sm text-slate">Notes</label>
+      <input name="notes" value="{{ form.get('notes','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+    <p class="text-xs text-slatelight">If this supplier already exists (same name, phone, and address), the balance is added to their existing record instead of creating a duplicate.</p>
+    <button type="submit" class="rounded-md px-4 py-2 text-sm font-medium bg-ink text-paper hover:bg-ink2 transition-colors">Add opening balance</button>
+  </form>
+  <script>document.getElementById('creditor-date').valueAsDate = document.getElementById('creditor-date').valueAsDate || new Date();</script>
+
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line"><th class="px-5 py-3 font-normal">Supplier</th><th class="px-5 py-3 font-normal text-right">Amount</th><th class="px-5 py-3 font-normal">Date</th></tr></thead>
+      <tbody>
+        {% if rows|length == 0 %}<tr><td colspan="3" class="px-5 py-8 text-center text-slatelight">No opening creditor balances entered yet.</td></tr>{% endif %}
+        {% for o, s in rows %}
+        <tr class="border-b border-line/60 last:border-0">
+          <td class="px-5 py-3 text-ink">{{ s.name }}</td>
+          <td class="px-5 py-3 text-right font-mono text-rust">{{ o.amount|money }}</td>
+          <td class="px-5 py-3 text-ink">{{ o.date|shortdate }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

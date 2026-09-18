@@ -1,0 +1,21 @@
+{% extends "invoices/_print_base.html" %}
+{% block doc_title %}Receipt{% endblock %}
+{% block doc_heading %}Payment Receipt{% endblock %}
+{% block doc_meta %}
+  <div class="muted">RCPT-{{ payment.id[:8]|upper }}</div>
+  <div class="muted">{{ payment.date.strftime('%d %b %Y') }}</div>
+{% endblock %}
+{% block doc_body %}
+  <div style="margin-bottom:20px">
+    <div class="muted">{{ direction }}</div>
+    <div style="font-weight:500; font-size:15px">{{ party.name }}</div>
+    <div class="muted">{{ party.phone }} · {{ party.address }}</div>
+  </div>
+
+  <div class="totals" style="width:100%">
+    <div class="grand"><span>Amount</span><span class="num">{{ payment.amount|money2 }}</span></div>
+    <div><span>Method</span><span class="num">{{ payment.payment_method|title }}</span></div>
+  </div>
+
+  {% if payment.notes %}<div class="muted" style="margin-top:16px">Notes: {{ payment.notes }}</div>{% endif %}
+{% endblock %}

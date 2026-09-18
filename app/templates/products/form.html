@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit Product' if product else 'Add Product' }}{% endblock %}
+{% block content %}
+<div class="max-w-2xl space-y-6">
+  <div>
+    <h1 class="font-display text-2xl text-ink">{{ 'Edit Product' if product else 'Add Product' }}</h1>
+  </div>
+
+  <form method="post" class="bg-white border border-line rounded-lg p-6 space-y-4">
+    <div class="grid grid-cols-2 gap-4">
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Product name</label>
+        <input name="name" required value="{{ form.get('name','') }}" placeholder="e.g. Surf"
+               class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Category</label>
+        <input name="category" value="{{ form.get('category','') }}" placeholder="e.g. Detergent"
+               class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">SKU</label>
+        <input name="sku" required value="{{ form.get('sku','') }}" placeholder="e.g. SURF-1KG"
+               class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Packs per box</label>
+        <input name="packs_per_box" type="number" min="1" required value="{{ form.get('packs_per_box', 1) }}"
+               class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Purchase price / box</label>
+        <input name="purchase_price_per_box" type="number" min="0" step="0.01" required value="{{ form.get('purchase_price_per_box','') }}"
+               class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Sale price / box</label>
+        <input name="sale_price_per_box" type="number" min="0" step="0.01" required value="{{ form.get('sale_price_per_box','') }}"
+               class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+      </div>
+    </div>
+    <p class="text-xs text-slatelight -mt-2">Pack prices are calculated automatically as box price ÷ packs per box.</p>
+
+    <div class="grid grid-cols-2 gap-4 items-end">
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Minimum stock level (packs)</label>
+        <input name="min_stock_level_packs" type="number" min="0" value="{{ form.get('min_stock_level_packs', 0) }}"
+               class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+      </div>
+      <label class="flex items-center gap-2.5 pb-2">
+        <input type="checkbox" name="is_active" {{ 'checked' if form.get('is_active', True) else '' }} class="w-4 h-4 accent-forest" />
+        <span class="text-sm text-ink">Active</span>
+      </label>
+    </div>
+
+    {% if errors %}
+    <div class="rounded-md border border-rust/30 bg-rust/5 px-3.5 py-2.5 text-sm text-rust space-y-0.5">
+      {% for e in errors %}<div>{{ e }}</div>{% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="flex justify-end gap-2 pt-2">
+      <a href="{{ url_for('products.list_products') }}" class="rounded-md px-4 py-2 text-sm font-medium border border-line text-ink hover:bg-paper2 transition-colors">Cancel</a>
+      <button type="submit" class="rounded-md px-4 py-2 text-sm font-medium bg-ink text-paper hover:bg-ink2 transition-colors">{{ 'Save changes' if product else 'Add product' }}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

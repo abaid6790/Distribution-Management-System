@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Backup & Restore{% endblock %}
+{% block content %}
+<div class="max-w-2xl space-y-6">
+  <div>
+    <h1 class="font-display text-2xl text-ink">Backup & Restore</h1>
+    <p class="text-slate text-sm mt-1">Everything in the system, in one downloadable file.</p>
+  </div>
+
+  <div class="bg-white border border-line rounded-lg p-6 space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="font-display text-sm text-ink">Create a backup</h2>
+      <form method="post" action="{{ url_for('backup.create_backup') }}">
+        <button type="submit" class="rounded-md px-4 py-2 text-sm font-medium bg-ink text-paper hover:bg-ink2 transition-colors">Create backup now</button>
+      </form>
+    </div>
+    <p class="text-xs text-slatelight">Includes products, stock, sales, purchases, returns, customers, suppliers, employees, debtors, creditors, transactions, expenses, settings, opening balances, and the audit trail.</p>
+  </div>
+
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <div class="px-5 py-3.5 border-b border-line"><h2 class="font-display text-sm text-ink">Backup history</h2></div>
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line">
+        <th class="px-5 py-3 font-normal">File</th><th class="px-5 py-3 font-normal">Created</th><th class="px-5 py-3 font-normal text-right">Size</th><th class="px-5 py-3 font-normal"></th>
+      </tr></thead>
+      <tbody>
+        {% if history|length == 0 %}
+        <tr><td colspan="4" class="px-5 py-8 text-center text-slatelight">No backups yet.</td></tr>
+        {% else %}
+        {% for b in history %}
+        <tr class="border-b border-line/60 last:border-0">
+          <td class="px-5 py-3 font-mono text-ink">{{ b.filename }}</td>
+          <td class="px-5 py-3 text-ink">{{ b.created_at.strftime('%d %b %Y, %H:%M') }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ '{:,}'.format(b.size_bytes) }} B</td>
+          <td class="px-5 py-3 text-right"><a href="{{ url_for('backup.download_backup', backup_id=b.id) }}" class="text-slate hover:text-ink text-sm">Download</a></td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="bg-white border border-line rounded-lg p-6 space-y-4">
+    <h2 class="font-display text-sm text-ink">Restore from backup</h2>
+    <p class="text-sm text-rust">This replaces every record currently in the system with the contents of the file you upload. This cannot be undone — consider creating a fresh backup first. (The backup history list below is also cleared as part of a restore; the files themselves stay on disk.)</p>
+    <form method="post" action="{{ url_for('backup.restore_backup') }}" enctype="multipart/form-data" class="space-y-3" onsubmit="return confirm('This will replace ALL current data with the uploaded backup. Continue?');">
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Backup file</label>
+        <input type="file" name="backup_file" accept=".json" required class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm" />
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Type <span class="font-mono">RESTORE</span> to confirm</label>
+        <input type="text" name="confirm" required class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-rust focus:outline-none focus:ring-1 focus:ring-rust" />
+      </div>
+      <button type="submit" class="rounded-md px-4 py-2 text-sm font-medium bg-rust text-paper hover:opacity-90 transition-colors">Restore from this file</button>
+    </form>
+  </div>
+
+  <div class="bg-white border-2 border-rust/40 rounded-lg p-6 space-y-4">
+    <h2 class="font-display text-sm text-rust">Danger Zone</h2>
+    <p class="text-sm text-slate">Permanently delete all sales, purchases, returns, products, customers, suppliers, employees, stock, debtors, creditors, transactions, expenses, and opening balances. Your login and settings are kept.</p>
+    <form method="post" action="{{ url_for('backup.reset') }}" class="space-y-3" onsubmit="return confirm('This permanently deletes ALL business data. This cannot be undone. Continue?');">
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Type your business name (<span class="font-mono">{{ business_name }}</span>) to confirm</label>
+        <input type="text" name="confirm" required class="w-full rounded-md border border-rust/40 bg-white px-3.5 py-2 text-sm focus:border-rust focus:outline-none focus:ring-1 focus:ring-rust" />
+      </div>
+      <button type="submit" class="rounded-md px-4 py-2 text-sm font-medium bg-rust text-paper hover:opacity-90 transition-colors">Permanently delete all business data</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<div class="max-w-[1300px] space-y-6">
+  <div>
+    <h1 class="font-display text-2xl text-ink">Reports</h1>
+    <p class="text-slate text-sm mt-1">Every report reads from the same transaction records as the rest of the system.</p>
+  </div>
+
+  <div class="flex gap-1 border-b border-line overflow-x-auto">
+    {% set tabs = [
+      ('pnl', 'Profit & Loss'), ('sales', 'Sales'), ('purchases', 'Purchases'),
+      ('sale_returns', 'Sale Returns'), ('purchase_returns', 'Purchase Returns'),
+      ('expenses', 'Expenses'), ('debtors', 'Debtors'), ('creditors', 'Creditors'), ('stock', 'Stock')
+    ] %}
+    {% for key, label in tabs %}
+    <a href="{{ url_for('reports.index', tab=key) }}" class="px-3.5 py-2.5 text-sm whitespace-nowrap border-b-2 -mb-px transition-colors {{ 'border-amber text-ink font-medium' if tab == key else 'border-transparent text-slate hover:text-ink' }}">{{ label }}</a>
+    {% endfor %}
+  </div>
+
+  {% if tab in ['pnl','sales','purchases','expenses','sale_returns','purchase_returns'] %}
+  <form method="get" class="flex flex-wrap items-end gap-3">
+    <input type="hidden" name="tab" value="{{ tab }}" />
+    <div class="space-y-1.5">
+      <label class="text-xs text-slate">Range</label>
+      <select name="range" onchange="this.form.submit()" class="rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber">
+        <option value="today" {{ 'selected' if range_key == 'today' else '' }}>Today</option>
+        <option value="yesterday" {{ 'selected' if range_key == 'yesterday' else '' }}>Yesterday</option>
+        <option value="month" {{ 'selected' if range_key == 'month' else '' }}>This Month</option>
+        <option value="year" {{ 'selected' if range_key == 'year' else '' }}>This Year</option>
+        <option value="custom" {{ 'selected' if range_key == 'custom' else '' }}>Custom Range</option>
+      </select>
+    </div>
+    {% if range_key == 'custom' %}
+    <div class="space-y-1.5"><label class="text-xs text-slate">From</label>
+      <input type="date" name="from" value="{{ from_str }}" class="rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+    <div class="space-y-1.5"><label class="text-xs text-slate">To</label>
+      <input type="date" name="to" value="{{ to_str }}" class="rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+    <button type="submit" class="rounded-md px-4 py-2 text-sm font-medium border border-line text-ink hover:bg-paper2 transition-colors">Apply</button>
+    {% endif %}
+    <span class="text-sm text-slate self-center">{{ range_label }}</span>
+  </form>
+  {% endif %}
+
+  {% if tab == 'pnl' %}
+  <div class="bg-white border border-line rounded-lg divide-y divide-line max-w-lg">
+    <div class="px-6 py-4 flex justify-between text-sm"><span class="text-slate">Sales</span><span class="font-mono text-ink">{{ pnl.sales|money }}</span></div>
+    <div class="px-6 py-4 flex justify-between text-sm"><span class="text-slate">Sale Returns</span><span class="font-mono text-rust">−{{ pnl.sale_returns|money }}</span></div>
+    <div class="px-6 py-4 flex justify-between text-sm font-medium"><span class="text-ink">Net Sales</span><span class="font-mono text-ink">{{ pnl.net_sales|money }}</span></div>
+    <div class="px-6 py-4 flex justify-between text-sm"><span class="text-slate">Cost of Goods Sold</span><span class="font-mono text-rust">−{{ pnl.cogs|money }}</span></div>
+    <div class="px-6 py-4 flex justify-between text-sm font-medium"><span class="text-ink">Gross Profit</span><span class="font-mono text-ink">{{ pnl.gross_profit|money }}</span></div>
+    <div class="px-6 py-4 flex justify-between text-sm"><span class="text-slate">Expenses</span><span class="font-mono text-rust">−{{ pnl.expenses|money }}</span></div>
+    <div class="px-6 py-4 flex justify-between text-base font-semibold bg-paper2/40"><span class="text-ink">Net Profit</span><span class="font-mono {{ 'text-forest' if pnl.net_profit >= 0 else 'text-rust' }}">{{ pnl.net_profit|money }}</span></div>
+  </div>
+  <p class="text-xs text-slatelight max-w-lg">Cost of Goods Sold is valued at each product's weighted-average purchase cost, not its current listed price — so profit doesn't distort when purchase prices change over time.</p>
+  {% endif %}
+
+  {% if tab == 'sales' %}
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line">
+        <th class="px-5 py-3 font-normal">Invoice</th><th class="px-5 py-3 font-normal">Date</th><th class="px-5 py-3 font-normal">Customer</th><th class="px-5 py-3 font-normal">Salesman</th>
+        <th class="px-5 py-3 font-normal text-right">Items</th><th class="px-5 py-3 font-normal text-right">Subtotal</th><th class="px-5 py-3 font-normal text-right">Discount</th>
+        <th class="px-5 py-3 font-normal text-right">Tax</th><th class="px-5 py-3 font-normal text-right">Grand Total</th><th class="px-5 py-3 font-normal text-right">Cash</th><th class="px-5 py-3 font-normal text-right">Credit</th>
+      </tr></thead>
+      <tbody>
+        {% if rows|length == 0 %}<tr><td colspan="11" class="px-5 py-10 text-center text-slatelight">No sales in this range.</td></tr>{% endif %}
+        {% for r in rows %}
+        <tr class="border-b border-line/60 last:border-0">
+          <td class="px-5 py-3 font-mono text-ink">{{ r.sale.invoice_number }}</td>
+          <td class="px-5 py-3 text-ink">{{ r.sale.date|shortdate }}</td>
+          <td class="px-5 py-3 text-ink">{{ r.customer.name }}</td>
+          <td class="px-5 py-3 text-ink">{{ r.employee.name }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.item_count }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.sale.subtotal|money }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.sale.overall_discount|money }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.sale.tax|money }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink font-medium">{{ r.sale.grand_total|money }}</td>
+          <td class="px-5 py-3 text-right font-mono text-forest">{{ r.sale.cash_amount|money }}</td>
+          <td class="px-5 py-3 text-right font-mono text-rust">{{ r.sale.credit_amount|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if tab == 'purchases' %}
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line">
+        <th class="px-5 py-3 font-normal">Invoice</th><th class="px-5 py-3 font-normal">Date</th><th class="px-5 py-3 font-normal">Supplier</th>
+        <th class="px-5 py-3 font-normal text-right">Items</th><th class="px-5 py-3 font-normal text-right">Subtotal</th><th class="px-5 py-3 font-normal text-right">Discount</th>
+        <th class="px-5 py-3 font-normal text-right">Tax</th><th class="px-5 py-3 font-normal text-right">Grand Total</th><th class="px-5 py-3 font-normal text-right">Cash</th><th class="px-5 py-3 font-normal text-right">Credit</th>
+      </tr></thead>
+      <tbody>
+        {% if rows|length == 0 %}<tr><td colspan="10" class="px-5 py-10 text-center text-slatelight">No purchases in this range.</td></tr>{% endif %}
+        {% for r in rows %}
+        <tr class="border-b border-line/60 last:border-0">
+          <td class="px-5 py-3 font-mono text-ink">{{ r.purchase.invoice_number }}</td>
+          <td class="px-5 py-3 text-ink">{{ r.purchase.date|shortdate }}</td>
+          <td class="px-5 py-3 text-ink">{{ r.supplier.name }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.item_count }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.purchase.subtotal|money }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.purchase.overall_discount|money }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.purchase.tax|money }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink font-medium">{{ r.purchase.grand_total|money }}</td>
+          <td class="px-5 py-3 text-right font-mono text-forest">{{ r.purchase.cash_amount|money }}</td>
+          <td class="px-5 py-3 text-right font-mono text-rust">{{ r.purchase.credit_amount|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if tab == 'sale_returns' %}
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line">
+        <th class="px-5 py-3 font-normal">Return Invoice</th><th class="px-5 py-3 font-normal">Original Invoice</th><th class="px-5 py-3 font-normal">Customer</th>
+        <th class="px-5 py-3 font-normal">Date</th><th class="px-5 py-3 font-normal text-right">Quantity</th><th class="px-5 py-3 font-normal text-right">Amount</th>
+      </tr></thead>
+      <tbody>
+        {% if rows|length == 0 %}<tr><td colspan="6" class="px-5 py-10 text-center text-slatelight">No sale returns in this range.</td></tr>{% endif %}
+        {% for r in rows %}
+        <tr class="border-b border-line/60 last:border-0">
+          <td class="px-5 py-3 font-mono text-ink">{{ r.return.return_invoice_number }}</td>
+          <td class="px-5 py-3 font-mono text-ink">{{ r.sale.invoice_number }}</td>
+          <td class="px-5 py-3 text-ink">{{ r.customer.name }}</td>
+          <td class="px-5 py-3 text-ink">{{ r.return.date|shortdate }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.quantity }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.return.grand_total|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if tab == 'purchase_returns' %}
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line">
+        <th class="px-5 py-3 font-normal">Return Invoice</th><th class="px-5 py-3 font-normal">Original Invoice</th><th class="px-5 py-3 font-normal">Supplier</th>
+        <th class="px-5 py-3 font-normal">Date</th><th class="px-5 py-3 font-normal text-right">Quantity</th><th class="px-5 py-3 font-normal text-right">Amount</th>
+      </tr></thead>
+      <tbody>
+        {% if rows|length == 0 %}<tr><td colspan="6" class="px-5 py-10 text-center text-slatelight">No purchase returns in this range.</td></tr>{% endif %}
+        {% for r in rows %}
+        <tr class="border-b border-line/60 last:border-0">
+          <td class="px-5 py-3 font-mono text-ink">{{ r.return.return_invoice_number }}</td>
+          <td class="px-5 py-3 font-mono text-ink">{{ r.purchase.invoice_number }}</td>
+          <td class="px-5 py-3 text-ink">{{ r.supplier.name }}</td>
+          <td class="px-5 py-3 text-ink">{{ r.return.date|shortdate }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.quantity }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.return.grand_total|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if tab == 'expenses' %}
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line">
+        <th class="px-5 py-3 font-normal">Date</th><th class="px-5 py-3 font-normal">Category</th><th class="px-5 py-3 font-normal">Description</th><th class="px-5 py-3 font-normal text-right">Amount</th>
+      </tr></thead>
+      <tbody>
+        {% if rows|length == 0 %}<tr><td colspan="4" class="px-5 py-10 text-center text-slatelight">No expenses in this range.</td></tr>{% endif %}
+        {% for e in rows %}
+        <tr class="border-b border-line/60 last:border-0">
+          <td class="px-5 py-3 text-ink">{{ e.date|shortdate }}</td>
+          <td class="px-5 py-3 text-ink">{{ e.category }}</td>
+          <td class="px-5 py-3 text-ink">{{ e.description }}</td>
+          <td class="px-5 py-3 text-right font-mono text-rust">{{ e.amount|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if tab == 'debtors' %}
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line">
+        <th class="px-5 py-3 font-normal">Customer</th><th class="px-5 py-3 font-normal text-right">Total</th><th class="px-5 py-3 font-normal text-right">Received</th><th class="px-5 py-3 font-normal text-right">Pending</th>
+      </tr></thead>
+      <tbody>
+        {% if rows|length == 0 %}<tr><td colspan="4" class="px-5 py-10 text-center text-slatelight">No customers with credit sales yet.</td></tr>{% endif %}
+        {% for r in rows %}
+        <tr class="border-b border-line/60 last:border-0">
+          <td class="px-5 py-3 text-ink font-medium">{{ r.customer.name }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.balance.total_credit|money }}</td>
+          <td class="px-5 py-3 text-right font-mono text-forest">{{ r.balance.total_paid|money }}</td>
+          <td class="px-5 py-3 text-right font-mono text-rust">{{ r.balance.pending|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if tab == 'creditors' %}
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line">
+        <th class="px-5 py-3 font-normal">Supplier</th><th class="px-5 py-3 font-normal text-right">Total</th><th class="px-5 py-3 font-normal text-right">Paid</th><th class="px-5 py-3 font-normal text-right">Pending</th>
+      </tr></thead>
+      <tbody>
+        {% if rows|length == 0 %}<tr><td colspan="4" class="px-5 py-10 text-center text-slatelight">No suppliers with credit purchases yet.</td></tr>{% endif %}
+        {% for r in rows %}
+        <tr class="border-b border-line/60 last:border-0">
+          <td class="px-5 py-3 text-ink font-medium">{{ r.supplier.name }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.balance.total_credit|money }}</td>
+          <td class="px-5 py-3 text-right font-mono text-forest">{{ r.balance.total_paid|money }}</td>
+          <td class="px-5 py-3 text-right font-mono text-rust">{{ r.balance.pending|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if tab == 'stock' %}
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line">
+        <th class="px-5 py-3 font-normal">Product</th><th class="px-5 py-3 font-normal text-right">Purchased</th><th class="px-5 py-3 font-normal text-right">Sold</th>
+        <th class="px-5 py-3 font-normal text-right">Returned (Sale/Purchase)</th><th class="px-5 py-3 font-normal text-right">Remaining</th>
+        <th class="px-5 py-3 font-normal text-right">Stock Value</th><th class="px-5 py-3 font-normal text-right">Potential Value</th>
+      </tr></thead>
+      <tbody>
+        {% if rows|length == 0 %}<tr><td colspan="7" class="px-5 py-10 text-center text-slatelight">No products yet.</td></tr>{% endif %}
+        {% for r in rows %}
+        <tr class="border-b border-line/60 last:border-0">
+          <td class="px-5 py-3 text-ink font-medium">{{ r.product.name }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.purchased|round|int }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.sold|round|int }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.sale_returned|round|int }} / {{ r.purchase_returned|round|int }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink font-medium">{{ r.remaining|round|int }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ r.stock_value|money }}</td>
+          <td class="px-5 py-3 text-right font-mono text-forest">{{ r.potential_value|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

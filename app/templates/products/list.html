@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Products{% endblock %}
+{% block content %}
+<div class="max-w-[1200px] space-y-6">
+  <div class="flex items-center justify-between flex-wrap gap-3">
+    <div>
+      <h1 class="font-display text-2xl text-ink">Products</h1>
+      <p class="text-slate text-sm mt-1">Manage what you buy and sell, by box or by pack.</p>
+    </div>
+    <a href="{{ url_for('products.new_product') }}" class="rounded-md bg-ink text-paper font-medium px-4 py-2 text-sm hover:bg-ink2 transition-colors">+ Add Product</a>
+  </div>
+
+  <form method="get" class="w-full sm:w-72">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search by name, SKU, or category"
+           class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm text-ink placeholder:text-slatelight focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+  </form>
+
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line">
+        <th class="px-5 py-3 font-normal">Product</th>
+        <th class="px-5 py-3 font-normal">SKU</th>
+        <th class="px-5 py-3 font-normal">Packs/Box</th>
+        <th class="px-5 py-3 font-normal text-right">Purchase (Box/Pack)</th>
+        <th class="px-5 py-3 font-normal text-right">Sale (Box/Pack)</th>
+        <th class="px-5 py-3 font-normal text-right">Stock</th>
+        <th class="px-5 py-3 font-normal">Status</th>
+        <th class="px-5 py-3 font-normal"></th>
+      </tr></thead>
+      <tbody>
+        {% if products|length == 0 %}
+        <tr><td colspan="8" class="px-5 py-10 text-center text-slatelight">
+          {{ "No products match your search." if q else "No products yet. Add your first one to get started." }}
+        </td></tr>
+        {% else %}
+        {% for p in products %}
+        <tr class="border-b border-line/60 last:border-0 hover:bg-paper2/40">
+          <td class="px-5 py-3">
+            <div class="text-ink font-medium">{{ p.name }}</div>
+            {% if p.category %}<div class="text-xs text-slatelight">{{ p.category }}</div>{% endif %}
+          </td>
+          <td class="px-5 py-3 font-mono text-ink">{{ p.sku }}</td>
+          <td class="px-5 py-3 font-mono text-ink">{{ p.packs_per_box }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ p.purchase_price_per_box|money2 }} / {{ p.purchase_price_per_pack|money2 }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ p.sale_price_per_box|money2 }} / {{ p.sale_price_per_pack|money2 }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink">{{ stock_map.get(p.id, 0) }}</td>
+          <td class="px-5 py-3">
+            <span class="text-xs px-2 py-0.5 rounded-full {{ 'bg-forest/10 text-forest' if p.is_active else 'bg-slate/10 text-slate' }}">
+              {{ 'Active' if p.is_active else 'Inactive' }}
+            </span>
+          </td>
+          <td class="px-5 py-3 text-right">
+            <a href="{{ url_for('products.edit_product', product_id=p.id) }}" class="text-slate hover:text-ink transition-colors text-sm">Edit</a>
+          </td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

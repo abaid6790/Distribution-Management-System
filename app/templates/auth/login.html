@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Sign in{% endblock %}
+{% block auth_content %}
+<div class="min-h-screen w-full flex">
+  <div class="hidden lg:flex lg:w-[42%] bg-ink text-paper flex-col justify-between px-14 py-12 relative overflow-hidden">
+    <div class="relative z-10 flex items-center gap-3">
+      <span class="w-9 h-9 rounded-sm bg-amber flex items-center justify-center font-display font-semibold text-ink text-lg">L</span>
+      <span class="font-display text-xl tracking-tight">Ledger</span>
+    </div>
+
+    <div class="relative z-10 space-y-3 py-10 max-w-sm">
+      <p class="font-display text-3xl leading-snug">Every box, every pack, every rupee — accounted for.</p>
+      <p class="text-paper/60 text-sm leading-relaxed">
+        One system for purchases, sales, returns, stock, and cash — so the numbers on your dashboard always match the numbers on the ground.
+      </p>
+    </div>
+
+    <div class="relative z-10 border-t border-white/15 pt-6 space-y-2 font-mono text-xs text-paper/45">
+      <div class="flex items-center justify-between"><span>Stock</span><span class="text-forest">synchronized</span></div>
+      <div class="flex items-center justify-between"><span>Cash book</span><span class="text-forest">reconciled</span></div>
+      <div class="flex items-center justify-between"><span>Invoices</span><span class="text-forest">sequential</span></div>
+    </div>
+  </div>
+
+  <div class="flex-1 flex items-center justify-center px-6 py-16 bg-paper">
+    <div class="w-full max-w-sm">
+      <div class="lg:hidden flex items-center gap-3 mb-10">
+        <span class="w-8 h-8 rounded-sm bg-amber flex items-center justify-center font-display font-semibold text-ink">L</span>
+        <span class="font-display text-lg tracking-tight text-ink">Ledger</span>
+      </div>
+
+      <h1 class="font-display text-2xl text-ink mb-1">Sign in</h1>
+      <p class="text-slate text-sm mb-8">Use the credentials your administrator gave you.</p>
+
+      <form method="post" class="space-y-5">
+        <input type="hidden" name="next" value="{{ next }}" />
+        <div class="space-y-1.5">
+          <label for="username" class="text-sm text-slate">Username</label>
+          <input id="username" name="username" type="text" autocomplete="username" required autofocus
+                 class="w-full rounded-md border border-line bg-white px-3.5 py-2.5 text-ink placeholder:text-slatelight focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber transition-colors"
+                 placeholder="e.g. admin" />
+        </div>
+        <div class="space-y-1.5">
+          <label for="password" class="text-sm text-slate">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required
+                 class="w-full rounded-md border border-line bg-white px-3.5 py-2.5 text-ink placeholder:text-slatelight focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber transition-colors"
+                 placeholder="••••••••" />
+        </div>
+
+        {% if error %}
+        <div class="rounded-md border border-rust/30 bg-rust/5 px-3.5 py-2.5 text-sm text-rust">{{ error }}</div>
+        {% endif %}
+
+        <button type="submit" class="w-full rounded-md bg-ink text-paper font-medium py-2.5 hover:bg-ink2 transition-colors">
+          Sign in
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

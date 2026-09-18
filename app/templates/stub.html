@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="max-w-2xl">
+  <h1 class="font-display text-2xl text-ink">{{ title }}</h1>
+  <div class="mt-6 rounded-lg border border-line bg-white px-6 py-8">
+    <span class="inline-block text-xs px-2 py-0.5 rounded-full bg-amber/15 text-amberdark mb-3">{{ phase }}</span>
+    <p class="text-sm text-slate leading-relaxed">{{ description }}</p>
+  </div>
+</div>
+{% endblock %}

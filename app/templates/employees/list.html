@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Employees{% endblock %}
+{% block content %}
+<div class="max-w-[1000px] space-y-6">
+  <div class="flex items-center justify-between flex-wrap gap-3">
+    <div>
+      <h1 class="font-display text-2xl text-ink">Employees</h1>
+      <p class="text-slate text-sm mt-1">Salesmen and staff — selectable as "Booked By" on sales.</p>
+    </div>
+    <a href="{{ url_for('employees.new_employee') }}" class="rounded-md bg-ink text-paper font-medium px-4 py-2 text-sm hover:bg-ink2 transition-colors">+ Add Employee</a>
+  </div>
+
+  <form method="get" class="w-full sm:w-72">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search by name, code, or phone"
+           class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm text-ink placeholder:text-slatelight focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+  </form>
+
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line">
+        <th class="px-5 py-3 font-normal">Code</th><th class="px-5 py-3 font-normal">Name</th><th class="px-5 py-3 font-normal">Phone</th>
+        <th class="px-5 py-3 font-normal">Email</th><th class="px-5 py-3 font-normal">CNIC</th><th class="px-5 py-3 font-normal">Status</th><th class="px-5 py-3 font-normal"></th>
+      </tr></thead>
+      <tbody>
+        {% if employees|length == 0 %}
+        <tr><td colspan="7" class="px-5 py-10 text-center text-slatelight">{{ "No employees match your search." if q else "No employees yet. Add your first one to get started." }}</td></tr>
+        {% else %}
+        {% for e in employees %}
+        <tr class="border-b border-line/60 last:border-0 hover:bg-paper2/40">
+          <td class="px-5 py-3 font-mono text-ink">{{ e.employee_code }}</td>
+          <td class="px-5 py-3 text-ink font-medium">{{ e.name }}</td>
+          <td class="px-5 py-3 text-ink">{{ e.phone or '—' }}</td>
+          <td class="px-5 py-3 text-ink">{{ e.email or '—' }}</td>
+          <td class="px-5 py-3 font-mono text-ink">{{ e.cnic or '—' }}</td>
+          <td class="px-5 py-3">
+            <span class="text-xs px-2 py-0.5 rounded-full {{ 'bg-forest/10 text-forest' if e.is_active else 'bg-slate/10 text-slate' }}">{{ 'Active' if e.is_active else 'Inactive' }}</span>
+          </td>
+          <td class="px-5 py-3 text-right"><a href="{{ url_for('employees.edit_employee', employee_id=e.id) }}" class="text-slate hover:text-ink text-sm">Edit</a></td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

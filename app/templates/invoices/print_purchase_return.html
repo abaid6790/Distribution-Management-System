@@ -1,0 +1,35 @@
+{% extends "invoices/_print_base.html" %}
+{% block doc_title %}{{ r.return_invoice_number }}{% endblock %}
+{% block doc_heading %}Purchase Return{% endblock %}
+{% block doc_meta %}
+  <div class="muted">{{ r.return_invoice_number }}</div>
+  <div class="muted">{{ r.date.strftime('%d %b %Y') }}</div>
+  <div class="muted">Against {{ r.purchase.invoice_number }}</div>
+{% endblock %}
+{% block doc_body %}
+  <div style="margin-bottom:16px">
+    <div class="muted">Supplier</div>
+    <div style="font-weight:500">{{ r.supplier.name }}</div>
+    <div class="muted">{{ r.supplier.phone }} · {{ r.supplier.address }}</div>
+  </div>
+
+  <table>
+    <thead><tr><th>Product</th><th class="num">Qty (packs)</th><th class="num">Unit Price</th><th class="num">Total</th></tr></thead>
+    <tbody>
+      {% for item in r.items %}
+      <tr>
+        <td>{{ item.product.name }}</td>
+        <td class="num">{{ item.quantity_packs }}</td>
+        <td class="num">{{ item.unit_price|money2 }}</td>
+        <td class="num">{{ item.line_total|money2 }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="totals">
+    <div class="grand"><span>Return Amount</span><span class="num">{{ r.grand_total|money2 }}</span></div>
+  </div>
+
+  {% if r.notes %}<div class="muted" style="margin-top:16px">Notes: {{ r.notes }}</div>{% endif %}
+{% endblock %}

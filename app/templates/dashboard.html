@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="space-y-8 max-w-[1400px]">
+  <div>
+    <h1 class="font-display text-2xl text-ink">Good day, {{ first_name }}</h1>
+    <p class="text-slate text-sm mt-1">Here's where the business stands today.</p>
+  </div>
+
+  {% if is_empty_business %}
+  <div class="rounded-lg border border-amber/30 bg-amber/[0.06] px-5 py-4 flex items-start gap-3">
+    <div class="w-1.5 h-1.5 rounded-full bg-amber mt-2 shrink-0"></div>
+    <div>
+      <p class="text-sm text-ink font-medium">This business hasn't recorded any activity yet</p>
+      <p class="text-sm text-slate mt-0.5">Add your products, then record a purchase or sale — customers and suppliers are created automatically as you go.</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="rounded-lg border border-line bg-white overflow-hidden">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 divide-y divide-line sm:divide-y-0">
+      <div class="px-5 py-4 sm:border-l border-line first:border-l-0">
+        <div class="text-xs text-slate mb-1.5">Today's Sales</div>
+        <div class="font-mono text-xl text-ink">{{ summary.today_sales|money }}</div>
+      </div>
+      <div class="px-5 py-4 sm:border-l border-line">
+        <div class="text-xs text-slate mb-1.5">Today's Purchases</div>
+        <div class="font-mono text-xl text-ink">{{ summary.today_purchases|money }}</div>
+      </div>
+      <div class="px-5 py-4 sm:border-l border-line">
+        <div class="text-xs text-slate mb-1.5">Today's Profit</div>
+        <div class="font-mono text-xl {{ 'text-forest' if summary.today_profit >= 0 else 'text-rust' }}">{{ summary.today_profit|money }}</div>
+      </div>
+      <div class="px-5 py-4 sm:border-l border-line">
+        <div class="text-xs text-slate mb-1.5">Cash In</div>
+        <div class="font-mono text-xl text-forest">{{ summary.today_cash_in|money }}</div>
+      </div>
+      <div class="px-5 py-4 sm:border-l border-line">
+        <div class="text-xs text-slate mb-1.5">Cash Out</div>
+        <div class="font-mono text-xl text-rust">{{ summary.today_cash_out|money }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+    <div class="rounded-lg border border-line bg-white px-4 py-3.5">
+      <div class="text-xs text-slate mb-1">Sale Returns</div>
+      <div class="font-mono text-base text-ink">{{ summary.today_sale_returns|money }}</div>
+    </div>
+    <div class="rounded-lg border border-line bg-white px-4 py-3.5">
+      <div class="text-xs text-slate mb-1">Purchase Returns</div>
+      <div class="font-mono text-base text-ink">{{ summary.today_purchase_returns|money }}</div>
+    </div>
+    <div class="rounded-lg border border-line bg-white px-4 py-3.5">
+      <div class="text-xs text-slate mb-1">Expenses</div>
+      <div class="font-mono text-base text-ink">{{ summary.today_expenses|money }}</div>
+    </div>
+    <div class="rounded-lg border border-line bg-white px-4 py-3.5">
+      <div class="text-xs text-slate mb-1">Total Debtors</div>
+      <div class="font-mono text-base text-rust">{{ summary.total_debtors|money }}</div>
+    </div>
+    <div class="rounded-lg border border-line bg-white px-4 py-3.5">
+      <div class="text-xs text-slate mb-1">Total Creditors</div>
+      <div class="font-mono text-base text-rust">{{ summary.total_creditors|money }}</div>
+    </div>
+    <div class="rounded-lg border border-line bg-white px-4 py-3.5">
+      <div class="text-xs text-slate mb-1">Stock Value</div>
+      <div class="font-mono text-base text-ink">{{ summary.total_stock_value|money }}</div>
+    </div>
+    <div class="rounded-lg border border-line bg-white px-4 py-3.5">
+      <div class="text-xs text-slate mb-1">Potential Sales Value</div>
+      <div class="font-mono text-base text-forest">{{ summary.potential_sales_value|money }}</div>
+    </div>
+    <div class="rounded-lg border border-line bg-white px-4 py-3.5">
+      <div class="text-xs text-slate mb-1">Low / Out of Stock</div>
+      <div class="font-mono text-base {{ 'text-rust' if summary.out_of_stock_count > 0 else 'text-ink' }}">{{ summary.low_stock_count }} / {{ summary.out_of_stock_count }}</div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+    <div class="rounded-lg border border-line bg-white">
+      <div class="px-5 py-3.5 border-b border-line"><h2 class="font-display text-sm text-ink">Recent Sales</h2></div>
+      <div class="px-5 py-4 overflow-x-auto">
+        {% if recent_sales|length == 0 %}
+        <p class="text-sm text-slatelight text-center py-8">No sales recorded yet. New invoices will show up here.</p>
+        {% else %}
+        <table class="w-full text-sm">
+          <thead><tr class="text-left text-slate border-b border-line">
+            <th class="py-2 font-normal">Invoice</th><th class="py-2 font-normal">Customer</th><th class="py-2 font-normal">Booked By</th><th class="py-2 font-normal text-right">Total</th>
+          </tr></thead>
+          <tbody>
+            {% for sale, customer, employee in recent_sales %}
+            <tr class="border-b border-line/60 last:border-0">
+              <td class="py-2.5 font-mono text-ink">{{ sale.invoice_number }}</td>
+              <td class="py-2.5 text-ink">{{ customer.name }}</td>
+              <td class="py-2.5 text-ink">{{ employee.name }}</td>
+              <td class="py-2.5 text-right font-mono text-ink">{{ sale.grand_total|money }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="rounded-lg border border-line bg-white">
+      <div class="px-5 py-3.5 border-b border-line"><h2 class="font-display text-sm text-ink">Recent Purchases</h2></div>
+      <div class="px-5 py-4 overflow-x-auto">
+        {% if recent_purchases|length == 0 %}
+        <p class="text-sm text-slatelight text-center py-8">No purchases recorded yet. New purchase invoices will show up here.</p>
+        {% else %}
+        <table class="w-full text-sm">
+          <thead><tr class="text-left text-slate border-b border-line">
+            <th class="py-2 font-normal">Invoice</th><th class="py-2 font-normal">Supplier</th><th class="py-2 font-normal text-right">Total</th>
+          </tr></thead>
+          <tbody>
+            {% for purchase, supplier in recent_purchases %}
+            <tr class="border-b border-line/60 last:border-0">
+              <td class="py-2.5 font-mono text-ink">{{ purchase.invoice_number }}</td>
+              <td class="py-2.5 text-ink">{{ supplier.name }}</td>
+              <td class="py-2.5 text-right font-mono text-ink">{{ purchase.grand_total|money }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="rounded-lg border border-line bg-white">
+      <div class="px-5 py-3.5 border-b border-line"><h2 class="font-display text-sm text-ink">Low Stock</h2></div>
+      <div class="px-5 py-4 overflow-x-auto">
+        {% if low_stock|length == 0 %}
+        <p class="text-sm text-slatelight text-center py-8">
+          {% if counts.products == 0 %}No products yet. Once you add products, low-stock alerts appear here.{% else %}All products are within their minimum stock levels.{% endif %}
+        </p>
+        {% else %}
+        <table class="w-full text-sm">
+          <thead><tr class="text-left text-slate border-b border-line">
+            <th class="py-2 font-normal">Product</th><th class="py-2 font-normal text-right">Current</th><th class="py-2 font-normal text-right">Minimum</th><th class="py-2 font-normal">Status</th>
+          </tr></thead>
+          <tbody>
+            {% for p in low_stock %}
+            <tr class="border-b border-line/60 last:border-0">
+              <td class="py-2.5 text-ink">{{ p.name }}</td>
+              <td class="py-2.5 text-right font-mono text-ink">{{ p.current_stock }}</td>
+              <td class="py-2.5 text-right font-mono text-ink">{{ p.min_stock }}</td>
+              <td class="py-2.5">
+                <span class="text-xs px-2 py-0.5 rounded-full {{ 'bg-rust/10 text-rust' if p.status == 'out' else 'bg-amber/15 text-amberdark' }}">
+                  {{ 'Out of stock' if p.status == 'out' else 'Low' }}
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="rounded-lg border border-line bg-white">
+      <div class="px-5 py-3.5 border-b border-line"><h2 class="font-display text-sm text-ink">Recent Transactions</h2></div>
+      <div class="px-5 py-4 overflow-x-auto">
+        {% if recent_tx|length == 0 %}
+        <p class="text-sm text-slatelight text-center py-8">No cash transactions yet. Sales, payments, and expenses will post here.</p>
+        {% else %}
+        <table class="w-full text-sm">
+          <thead><tr class="text-left text-slate border-b border-line">
+            <th class="py-2 font-normal">Description</th><th class="py-2 font-normal text-right">Cash In</th><th class="py-2 font-normal text-right">Cash Out</th>
+          </tr></thead>
+          <tbody>
+            {% for t in recent_tx %}
+            <tr class="border-b border-line/60 last:border-0">
+              <td class="py-2.5 text-ink">{{ t.description }}</td>
+              <td class="py-2.5 text-right font-mono text-ink">{{ t.amount|money if t.type == 'CASH_IN' else '—' }}</td>
+              <td class="py-2.5 text-right font-mono text-ink">{{ t.amount|money if t.type == 'CASH_OUT' else '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

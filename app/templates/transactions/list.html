@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Cash Book{% endblock %}
+{% block content %}
+<div class="max-w-[1100px] space-y-6">
+  <div>
+    <h1 class="font-display text-2xl text-ink">Cash Book</h1>
+    <p class="text-slate text-sm mt-1">Every cash-in and cash-out event, with a running balance.</p>
+  </div>
+
+  <form method="get" class="flex flex-wrap items-end gap-3">
+    <div class="space-y-1.5">
+      <label class="text-xs text-slate">From</label>
+      <input type="date" name="from" value="{{ from_str }}" class="rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+    </div>
+    <div class="space-y-1.5">
+      <label class="text-xs text-slate">To</label>
+      <input type="date" name="to" value="{{ to_str }}" class="rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+    </div>
+    <div class="space-y-1.5">
+      <label class="text-xs text-slate">Type</label>
+      <select name="type" class="rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber">
+        <option value="" {{ 'selected' if not type_filter else '' }}>All</option>
+        <option value="CASH_IN" {{ 'selected' if type_filter == 'CASH_IN' else '' }}>Cash In</option>
+        <option value="CASH_OUT" {{ 'selected' if type_filter == 'CASH_OUT' else '' }}>Cash Out</option>
+      </select>
+    </div>
+    <button type="submit" class="rounded-md px-4 py-2 text-sm font-medium border border-line text-ink hover:bg-paper2 transition-colors">Filter</button>
+    <a href="{{ url_for('transactions.list_transactions') }}" class="text-sm text-slate hover:text-ink px-2 py-2">Reset</a>
+  </form>
+
+  <div class="grid grid-cols-2 gap-3">
+    <div class="rounded-lg border border-line bg-white px-4 py-3.5">
+      <div class="text-xs text-slate mb-1">Opening Balance</div>
+      <div class="font-mono text-base text-ink">{{ opening_balance|money }}</div>
+    </div>
+    <div class="rounded-lg border border-line bg-white px-4 py-3.5">
+      <div class="text-xs text-slate mb-1">Closing Balance</div>
+      <div class="font-mono text-base text-ink">{{ closing_balance|money }}</div>
+    </div>
+  </div>
+
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line">
+        <th class="px-5 py-3 font-normal">Date</th><th class="px-5 py-3 font-normal">Description</th><th class="px-5 py-3 font-normal">Category</th>
+        <th class="px-5 py-3 font-normal text-right">Cash In</th><th class="px-5 py-3 font-normal text-right">Cash Out</th><th class="px-5 py-3 font-normal text-right">Balance</th>
+      </tr></thead>
+      <tbody>
+        {% if rows|length == 0 %}
+        <tr><td colspan="6" class="px-5 py-10 text-center text-slatelight">No transactions in this range.</td></tr>
+        {% else %}
+        {% for r in rows %}
+        <tr class="border-b border-line/60 last:border-0">
+          <td class="px-5 py-3 text-ink">{{ r.tx.date|shortdate }}</td>
+          <td class="px-5 py-3 text-ink">{{ r.tx.description }}</td>
+          <td class="px-5 py-3 text-slate text-xs">{{ r.tx.category|title|replace('_',' ') }}</td>
+          <td class="px-5 py-3 text-right font-mono text-forest">{{ r.tx.amount|money if r.tx.type == 'CASH_IN' else '—' }}</td>
+          <td class="px-5 py-3 text-right font-mono text-rust">{{ r.tx.amount|money if r.tx.type == 'CASH_OUT' else '—' }}</td>
+          <td class="px-5 py-3 text-right font-mono text-ink font-medium">{{ r.balance|money }}</td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Stock Adjustments{% endblock %}
+{% block content %}
+<div class="max-w-[1000px] space-y-6">
+  <div class="flex items-center justify-between flex-wrap gap-3">
+    <div>
+      <h1 class="font-display text-2xl text-ink">Stock Adjustments</h1>
+      <p class="text-slate text-sm mt-1">Damaged, lost, or corrected stock — every change is recorded and attributed.</p>
+    </div>
+    <a href="{{ url_for('stock_adjustments.new_adjustment') }}" class="rounded-md bg-ink text-paper font-medium px-4 py-2 text-sm hover:bg-ink2 transition-colors">+ Add Adjustment</a>
+  </div>
+
+  <div class="rounded-lg border border-line bg-white overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate border-b border-line">
+        <th class="px-5 py-3 font-normal">Date</th><th class="px-5 py-3 font-normal">Product</th><th class="px-5 py-3 font-normal">Type</th>
+        <th class="px-5 py-3 font-normal">Reason</th><th class="px-5 py-3 font-normal text-right">Quantity</th>
+      </tr></thead>
+      <tbody>
+        {% if rows|length == 0 %}
+        <tr><td colspan="5" class="px-5 py-10 text-center text-slatelight">No stock adjustments recorded yet.</td></tr>
+        {% else %}
+        {% for a, p in rows %}
+        <tr class="border-b border-line/60 last:border-0">
+          <td class="px-5 py-3 text-ink">{{ a.date|shortdate }}</td>
+          <td class="px-5 py-3 text-ink font-medium">{{ p.name }}</td>
+          <td class="px-5 py-3 text-ink">{{ type_labels[a.type] }}</td>
+          <td class="px-5 py-3 text-ink">{{ a.reason }}</td>
+          <td class="px-5 py-3 text-right font-mono {{ 'text-forest' if a.quantity_packs > 0 else 'text-rust' }}">
+            {{ '+' if a.quantity_packs > 0 else '' }}{{ a.quantity_packs }}
+          </td>
+        </tr>
+        {% endfor %}
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

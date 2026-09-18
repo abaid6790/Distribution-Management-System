@@ -1,0 +1,45 @@
+{% extends "invoices/_print_base.html" %}
+{% block doc_title %}{{ sale.invoice_number }}{% endblock %}
+{% block doc_heading %}Sale Invoice{% endblock %}
+{% block doc_meta %}
+  <div class="muted">{{ sale.invoice_number }}</div>
+  <div class="muted">{{ sale.date.strftime('%d %b %Y') }}</div>
+  <div class="status-pill">{{ sale.payment_status.replace('_',' ')|title }}</div>
+{% endblock %}
+{% block doc_body %}
+  {% if printing.show_customer_info %}
+  <div style="margin-bottom:16px">
+    <div class="muted">Bill to</div>
+    <div style="font-weight:500">{{ sale.customer.name }}</div>
+    <div class="muted">{{ sale.customer.phone }} · {{ sale.customer.address }}</div>
+  </div>
+  {% endif %}
+  <div class="muted" style="margin-bottom:8px">Booked by {{ sale.booked_by.name }}</div>
+
+  <table>
+    <thead><tr><th>Product</th><th>Unit</th><th class="num">Qty</th><th class="num">Price</th><th class="num">Discount</th><th class="num">Total</th></tr></thead>
+    <tbody>
+      {% for item in sale.items %}
+      <tr>
+        <td>{{ item.product.name }}</td>
+        <td>{{ item.unit_type|title }}</td>
+        <td class="num">{{ item.quantity }}</td>
+        <td class="num">{{ item.unit_price|money2 }}</td>
+        <td class="num">{{ item.discount|money2 }}</td>
+        <td class="num">{{ item.line_total|money2 }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="totals">
+    <div><span>Subtotal</span><span class="num">{{ sale.subtotal|money2 }}</span></div>
+    <div><span>Discount</span><span class="num">{{ sale.overall_discount|money2 }}</span></div>
+    <div><span>Tax</span><span class="num">{{ sale.tax|money2 }}</span></div>
+    <div class="grand"><span>Grand Total</span><span class="num">{{ sale.grand_total|money2 }}</span></div>
+    <div><span>Cash</span><span class="num">{{ sale.cash_amount|money2 }}</span></div>
+    <div><span>Credit</span><span class="num">{{ sale.credit_amount|money2 }}</span></div>
+  </div>
+
+  {% if sale.notes %}<div class="muted" style="margin-top:16px">Notes: {{ sale.notes }}</div>{% endif %}
+{% endblock %}

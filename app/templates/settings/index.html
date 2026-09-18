@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<div class="max-w-2xl space-y-6">
+  <div>
+    <h1 class="font-display text-2xl text-ink">Settings</h1>
+    <p class="text-slate text-sm mt-1">Business details, invoice numbering, and print layout.</p>
+  </div>
+
+  <div class="flex gap-1 border-b border-line">
+    <a href="{{ url_for('settings.index', tab='business') }}" class="px-4 py-2.5 text-sm border-b-2 -mb-px transition-colors {{ 'border-amber text-ink font-medium' if tab == 'business' else 'border-transparent text-slate hover:text-ink' }}">Business</a>
+    <a href="{{ url_for('settings.index', tab='invoice') }}" class="px-4 py-2.5 text-sm border-b-2 -mb-px transition-colors {{ 'border-amber text-ink font-medium' if tab == 'invoice' else 'border-transparent text-slate hover:text-ink' }}">Invoice Numbering</a>
+    <a href="{{ url_for('settings.index', tab='printing') }}" class="px-4 py-2.5 text-sm border-b-2 -mb-px transition-colors {{ 'border-amber text-ink font-medium' if tab == 'printing' else 'border-transparent text-slate hover:text-ink' }}">Printing</a>
+  </div>
+
+  {% if errors %}
+  <div class="rounded-md border border-rust/30 bg-rust/5 px-3.5 py-2.5 text-sm text-rust space-y-0.5">
+    {% for e in errors %}<div>{{ e }}</div>{% endfor %}
+  </div>
+  {% endif %}
+
+  {% if tab == 'business' %}
+  <form method="post" action="{{ url_for('settings.update_business') }}" class="bg-white border border-line rounded-lg p-6 space-y-4">
+    <div class="space-y-1.5">
+      <label class="text-sm text-slate">Business name</label>
+      <input name="business_name" required value="{{ business.business_name }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+    </div>
+    <div class="space-y-1.5">
+      <label class="text-sm text-slate">Address</label>
+      <input name="address" value="{{ business.address or '' }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+    </div>
+    <div class="grid grid-cols-2 gap-4">
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Phone</label>
+        <input name="phone" value="{{ business.phone or '' }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Email</label>
+        <input name="email" type="email" value="{{ business.email or '' }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+      </div>
+    </div>
+    <div class="space-y-1.5">
+      <label class="text-sm text-slate">Tax number</label>
+      <input name="tax_number" value="{{ business.tax_number or '' }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+    </div>
+    <div class="pt-2"><button type="submit" class="rounded-md px-4 py-2 text-sm font-medium bg-ink text-paper hover:bg-ink2 transition-colors">Save changes</button></div>
+  </form>
+  {% endif %}
+
+  {% if tab == 'invoice' %}
+  <form method="post" action="{{ url_for('settings.update_invoice') }}" class="bg-white border border-line rounded-lg p-6 space-y-4">
+    <div class="grid grid-cols-2 gap-4">
+      <div class="space-y-1.5"><label class="text-sm text-slate">Sale invoice prefix</label>
+        <input name="sale_prefix" required value="{{ invoice.sale_prefix }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+      <div class="space-y-1.5"><label class="text-sm text-slate">Purchase invoice prefix</label>
+        <input name="purchase_prefix" required value="{{ invoice.purchase_prefix }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+      <div class="space-y-1.5"><label class="text-sm text-slate">Sale return prefix</label>
+        <input name="sale_return_prefix" required value="{{ invoice.sale_return_prefix }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+      <div class="space-y-1.5"><label class="text-sm text-slate">Purchase return prefix</label>
+        <input name="purchase_return_prefix" required value="{{ invoice.purchase_return_prefix }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+      <div class="space-y-1.5"><label class="text-sm text-slate">Payment receipt prefix</label>
+        <input name="payment_receipt_prefix" required value="{{ invoice.payment_receipt_prefix }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+      <div class="space-y-1.5"><label class="text-sm text-slate">Number padding</label>
+        <input name="number_padding" type="number" min="1" max="12" value="{{ invoice.number_padding }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+    </div>
+    <div class="space-y-1.5"><label class="text-sm text-slate">Invoice footer</label>
+      <input name="invoice_footer" value="{{ invoice.invoice_footer or '' }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+    <div class="space-y-1.5"><label class="text-sm text-slate">Default notes</label>
+      <input name="default_notes" value="{{ invoice.default_notes or '' }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+    <p class="text-xs text-slatelight">Changing these only affects invoices created from now on — numbers already issued never change.</p>
+    <div class="pt-2"><button type="submit" class="rounded-md px-4 py-2 text-sm font-medium bg-ink text-paper hover:bg-ink2 transition-colors">Save changes</button></div>
+  </form>
+  {% endif %}
+
+  {% if tab == 'printing' %}
+  <form method="post" action="{{ url_for('settings.update_printing') }}" class="bg-white border border-line rounded-lg p-6 space-y-4">
+    <div class="grid grid-cols-2 gap-4">
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Paper size</label>
+        <select name="paper_size" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber">
+          <option value="A4" {{ 'selected' if printing.paper_size == 'A4' else '' }}>A4</option>
+          <option value="THERMAL" {{ 'selected' if printing.paper_size == 'THERMAL' else '' }}>Thermal receipt</option>
+        </select>
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-sm text-slate">Margin (mm)</label>
+        <input name="margin_mm" type="number" min="0" max="50" value="{{ printing.margin_mm }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+      </div>
+    </div>
+    <div class="space-y-3 py-1">
+      <label class="flex items-center gap-2.5"><input type="checkbox" name="show_logo" {{ 'checked' if printing.show_logo else '' }} class="w-4 h-4 accent-forest" /><span class="text-sm text-ink">Show logo</span></label>
+      <label class="flex items-center gap-2.5"><input type="checkbox" name="show_business_info" {{ 'checked' if printing.show_business_info else '' }} class="w-4 h-4 accent-forest" /><span class="text-sm text-ink">Show business information</span></label>
+      <label class="flex items-center gap-2.5"><input type="checkbox" name="show_customer_info" {{ 'checked' if printing.show_customer_info else '' }} class="w-4 h-4 accent-forest" /><span class="text-sm text-ink">Show customer information</span></label>
+    </div>
+    <div class="space-y-1.5"><label class="text-sm text-slate">Footer text</label>
+      <input name="footer_text" value="{{ printing.footer_text or '' }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+    <div class="pt-2"><button type="submit" class="rounded-md px-4 py-2 text-sm font-medium bg-ink text-paper hover:bg-ink2 transition-colors">Save changes</button></div>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

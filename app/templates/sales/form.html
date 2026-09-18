@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% block title %}New Sale{% endblock %}
+{% block content %}
+<div class="max-w-4xl space-y-6">
+  <div>
+    <h1 class="font-display text-2xl text-ink">{{ 'Edit Sale ' + editing.invoice_number if editing else 'New Sale' }}</h1>
+    <p class="text-slate text-sm mt-1">{{ 'The invoice number stays the same; everything else can be corrected here.' if editing else 'The customer is created automatically if this name, phone, and address combination is new.' }}</p>
+  </div>
+
+  <form method="post" id="sale-form" class="space-y-6" action="{{ url_for('sales.edit_sale', sale_id=editing.id) if editing else url_for('sales.new_sale') }}">
+    <div class="bg-white border border-line rounded-lg p-6 space-y-4">
+      <h2 class="font-display text-sm text-ink">Sale details</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="space-y-1.5">
+          <label class="text-sm text-slate">Date</label>
+          <input type="date" name="date" required value="{{ form.get('date') or '' }}" id="date-input"
+                 class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+        </div>
+        <div class="space-y-1.5">
+          <label class="text-sm text-slate">Booked by</label>
+          <select name="booked_by_id" required class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber">
+            <option value="">Select employee…</option>
+            {% for e in employees %}
+            <option value="{{ e.id }}" {{ 'selected' if form.get('booked_by_id') == e.id else '' }}>{{ e.name }} ({{ e.employee_code }})</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-4">
+        <div class="space-y-1.5"><label class="text-sm text-slate">Customer name</label>
+          <input name="customer_name" required value="{{ form.get('customer_name','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+        <div class="space-y-1.5"><label class="text-sm text-slate">Customer phone</label>
+          <input name="customer_phone" required value="{{ form.get('customer_phone','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+        <div class="space-y-1.5"><label class="text-sm text-slate">Customer address</label>
+          <input name="customer_address" required value="{{ form.get('customer_address','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+      </div>
+    </div>
+
+    <div class="bg-white border border-line rounded-lg p-6 space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="font-display text-sm text-ink">Products</h2>
+        <button type="button" id="add-line" class="rounded-md px-3 py-1.5 text-xs font-medium border border-line text-ink hover:bg-paper2 transition-colors">+ Add line</button>
+      </div>
+      <div id="line-items" class="space-y-3"></div>
+    </div>
+
+    <div class="bg-white border border-line rounded-lg p-6 space-y-4">
+      <h2 class="font-display text-sm text-ink">Totals & payment</h2>
+      <div class="grid grid-cols-3 gap-4">
+        <div class="space-y-1.5"><label class="text-sm text-slate">Overall discount</label>
+          <input type="number" min="0" step="0.01" name="overall_discount" value="{{ form.get('overall_discount','0') }}" id="overall-discount"
+                 class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+        <div class="space-y-1.5"><label class="text-sm text-slate">Tax</label>
+          <input type="number" min="0" step="0.01" name="tax" value="{{ form.get('tax','0') }}" id="tax-input"
+                 class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+        <div class="space-y-1.5"><label class="text-sm text-slate">Payment method</label>
+          <select name="payment_method" id="payment-method" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber">
+            <option value="CASH">Cash</option><option value="CREDIT">Credit</option><option value="PARTIAL">Partial</option>
+          </select></div>
+      </div>
+      <div id="cash-amount-field" class="space-y-1.5 hidden">
+        <label class="text-sm text-slate">Cash paid now</label>
+        <input type="number" min="0" step="0.01" name="cash_amount" id="cash-amount" value="{{ form.get('cash_amount','0') }}"
+               class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
+      </div>
+      <div class="space-y-1.5"><label class="text-sm text-slate">Notes</label>
+        <input name="notes" value="{{ form.get('notes','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
+
+      <div class="border-t border-line pt-4 space-y-1.5 text-sm">
+        <div class="flex justify-between text-slate"><span>Subtotal</span><span class="font-mono text-ink" id="subtotal-display">Rs 0</span></div>
+        <div class="flex justify-between font-medium text-ink text-base pt-1"><span>Grand total</span><span class="font-mono" id="grandtotal-display">Rs 0</span></div>
+        <div class="flex justify-between text-slate"><span>Cash</span><span class="font-mono text-forest" id="cash-display">Rs 0</span></div>
+        <div class="flex justify-between text-slate"><span>Credit</span><span class="font-mono text-rust" id="credit-display">Rs 0</span></div>
+      </div>
+    </div>
+
+    {% if errors %}
+    <div class="rounded-md border border-rust/30 bg-rust/5 px-3.5 py-2.5 text-sm text-rust space-y-0.5">
+      {% for e in errors %}<div>{{ e }}</div>{% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="flex justify-end gap-2">
+      <a href="{{ url_for('sales.list_sales') }}" class="rounded-md px-4 py-2 text-sm font-medium border border-line text-ink hover:bg-paper2 transition-colors">Cancel</a>
+      <button type="submit" class="rounded-md px-4 py-2 text-sm font-medium bg-ink text-paper hover:bg-ink2 transition-colors">{{ 'Save changes' if editing else 'Create sale' }}</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  const PRODUCTS = {{ products_json|safe }};
+  document.getElementById('date-input').max = new Date().toISOString().slice(0,10);
+  if (!document.getElementById('date-input').value) {
+    document.getElementById('date-input').value = new Date().toISOString().slice(0,10);
+  }
+
+  const container = document.getElementById('line-items');
+
+  function productOptions(selectedId) {
+    return '<option value="">Select product…</option>' + PRODUCTS.map(p =>
+      `<option value="${p.id}" ${p.id === selectedId ? 'selected' : ''}>${p.name} (${p.sku})</option>`
+    ).join('');
+  }
+
+  function addRow(prefill) {
+    const div = document.createElement('div');
+    div.className = 'border border-line rounded-md p-3 space-y-2';
+    div.innerHTML = `
+      <div class="grid grid-cols-[1fr_auto] gap-2 items-start">
+        <select name="product_id[]" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" data-product-select required>
+          ${productOptions(prefill ? prefill.product_id : '')}
+        </select>
+        <button type="button" data-remove class="text-slate hover:text-rust transition-colors p-2 text-sm">Remove</button>
+      </div>
+      <div class="grid grid-cols-4 gap-2">
+        <select name="unit_type[]" class="rounded-md border border-line bg-white px-3 py-2 text-sm" data-unit-type>
+          <option value="BOX" ${prefill && prefill.unit_type === 'BOX' ? 'selected' : ''}>Box</option>
+          <option value="PACK" ${prefill && prefill.unit_type === 'PACK' ? 'selected' : ''}>Pack</option>
+        </select>
+        <input type="number" min="0" step="0.01" placeholder="Qty" name="quantity[]" value="${prefill ? prefill.quantity : '1'}" class="rounded-md border border-line bg-white px-3 py-2 text-sm" data-qty />
+        <input type="number" min="0" step="0.01" placeholder="Unit price" name="unit_price[]" value="${prefill ? prefill.unit_price : ''}" class="rounded-md border border-line bg-white px-3 py-2 text-sm" data-price />
+        <input type="number" min="0" step="0.01" placeholder="Discount" name="discount[]" value="${prefill ? prefill.discount : '0'}" class="rounded-md border border-line bg-white px-3 py-2 text-sm" data-discount />
+      </div>
+      <div class="flex items-center justify-between text-xs">
+        <span class="text-slatelight" data-stock-hint></span>
+        <span class="font-mono text-ink" data-line-total>Rs 0</span>
+      </div>
+    `;
+    container.appendChild(div);
+
+    const productSelect = div.querySelector('[data-product-select]');
+    const unitType = div.querySelector('[data-unit-type]');
+    const priceInput = div.querySelector('[data-price]');
+
+    function syncPrice() {
+      const p = PRODUCTS.find(p => p.id === productSelect.value);
+      if (p) priceInput.value = unitType.value === 'BOX' ? p.sale_price_per_box : p.sale_price_per_pack;
+    }
+
+    productSelect.addEventListener('change', () => { syncPrice(); recalc(); });
+    unitType.addEventListener('change', () => { syncPrice(); recalc(); });
+    div.querySelector('[data-remove]').addEventListener('click', () => {
+      if (container.children.length > 1) { div.remove(); recalc(); }
+    });
+    div.querySelectorAll('input').forEach(inp => inp.addEventListener('input', recalc));
+
+    return div;
+  }
+
+  function recalc() {
+    let subtotal = 0;
+    container.querySelectorAll(':scope > div').forEach(row => {
+      const qty = parseFloat(row.querySelector('[data-qty]').value) || 0;
+      const price = parseFloat(row.querySelector('[data-price]').value) || 0;
+      const discount = parseFloat(row.querySelector('[data-discount]').value) || 0;
+      const lineTotal = Math.max(0, qty * price - discount);
+      row.querySelector('[data-line-total]').textContent = 'Rs ' + lineTotal.toLocaleString(undefined, {maximumFractionDigits:2});
+      subtotal += lineTotal;
+
+      const p = PRODUCTS.find(p => p.id === row.querySelector('[data-product-select]').value);
+      const hint = row.querySelector('[data-stock-hint]');
+      if (p) {
+        const unitType = row.querySelector('[data-unit-type]').value;
+        const requestedPacks = unitType === 'BOX' ? qty * p.packs_per_box : qty;
+        const over = requestedPacks > p.current_stock_packs;
+        hint.textContent = `In stock: ${p.current_stock_packs} packs` + (over ? ' — not enough for this quantity' : '');
+        hint.className = over ? 'text-rust' : 'text-slatelight';
+      } else {
+        hint.textContent = '';
+      }
+    });
+
+    const overallDiscount = parseFloat(document.getElementById('overall-discount').value) || 0;
+    const tax = parseFloat(document.getElementById('tax-input').value) || 0;
+    const grandTotal = Math.max(0, subtotal - overallDiscount + tax);
+
+    document.getElementById('subtotal-display').textContent = 'Rs ' + subtotal.toLocaleString(undefined, {maximumFractionDigits:2});
+    document.getElementById('grandtotal-display').textContent = 'Rs ' + grandTotal.toLocaleString(undefined, {maximumFractionDigits:2});
+
+    const method = document.getElementById('payment-method').value;
+    const cashField = document.getElementById('cash-amount-field');
+    const cashInput = document.getElementById('cash-amount');
+    if (method === 'CASH') { cashInput.value = grandTotal.toFixed(2); cashField.classList.add('hidden'); }
+    else if (method === 'CREDIT') { cashInput.value = '0'; cashField.classList.add('hidden'); }
+    else { cashField.classList.remove('hidden'); }
+
+    const cash = parseFloat(cashInput.value) || 0;
+    const credit = Math.max(0, grandTotal - cash);
+    document.getElementById('cash-display').textContent = 'Rs ' + cash.toLocaleString(undefined, {maximumFractionDigits:2});
+    document.getElementById('credit-display').textContent = 'Rs ' + credit.toLocaleString(undefined, {maximumFractionDigits:2});
+  }
+
+  document.getElementById('add-line').addEventListener('click', () => addRow());
+  document.getElementById('overall-discount').addEventListener('input', recalc);
+  document.getElementById('tax-input').addEventListener('input', recalc);
+  document.getElementById('payment-method').addEventListener('change', recalc);
+  document.getElementById('cash-amount').addEventListener('input', recalc);
+
+  const existingItems = {{ existing_items_json|default('null')|safe }};
+  if (existingItems && existingItems.length) {
+    existingItems.forEach(item => addRow(item));
+  } else {
+    addRow();
+  }
+  recalc();
+</script>
+{% endblock %}

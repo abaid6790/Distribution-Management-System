@@ -1,0 +1,12 @@
+:focus-visible {
+  outline: 2px solid #C9822E;
+  outline-offset: 2px;
+}
+
+input[type="number"]::-webkit-inner-spin-button {
+  opacity: 1;
+}
+
+.modal-backdrop {
+  background: rgba(20, 32, 46, 0.4);
+}

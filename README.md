@@ -1053,7 +1053,7 @@ Example:
 
 <div align="center">
 
-<img src="screenshots/dashboard.png" width="90%"/>
+<img src="screenshots/Dashboard.png" width="90%"/>
 
 <br><br>
 

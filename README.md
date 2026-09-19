@@ -1057,7 +1057,8 @@ Example:
 
 <br><br>
 
-<img src="screenshots/sales.png" width="90%"/>
+<img src="screenshots/New_Sale_1.png" width="90%"/>
+<img src="screenshots/New_Sale_2.png" width="90%"/>
 
 </div>
 
@@ -1187,13 +1188,15 @@ See `CONTRIBUTING.md` for project-specific guidelines.
 
 ---
 
-# 📄 License
-Abaid-ur-Rehman
-AL Engineer | ML Engineer | Python Developer
----
-
-
 # ✍ Author
+
+Abaid-ur-Rehman
+
+AL Engineer | ML Engineer | Python Developer
+
+
+
+# 📄 License
 
 This project is licensed under the **MIT License**.
 

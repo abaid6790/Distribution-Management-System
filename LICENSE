@@ -1,0 +1,36 @@
+Copyright (c) [Year] [Your Name / Company Name]. All Rights Reserved.
+
+This software and associated documentation (the "Software") are the
+proprietary property of [Your Name / Company Name]. The Software is
+provided to licensed clients under a separate commercial agreement.
+
+Unless explicitly permitted in a written agreement with [Your Name /
+Company Name]:
+
+1. No part of this Software may be copied, modified, merged, distributed,
+   sublicensed, resold, or used to provide a competing product or service.
+2. Each deployment of this Software is licensed for use by a single
+   business ("Client") and its own data. Using one deployment or database
+   to serve more than one unrelated business is not permitted.
+3. This Software is provided "AS IS", without warranty of any kind,
+   express or implied, including but not limited to the warranties of
+   merchantability, fitness for a particular purpose, and
+   non-infringement. In no event shall the author(s) be liable for any
+   claim, damages, or other liability arising from the use of the
+   Software.
+
+---
+
+## Note to the project owner
+
+This is a starting point, not legal advice — if you're actively selling
+this to clients, it's worth having an actual lawyer review (or draft) both
+this license and the commercial/service agreement you put in front of
+clients, particularly around data ownership, liability, and what happens
+to a client's data if they stop paying or you stop supporting them.
+
+If you'd instead prefer to open-source this project, replace this file
+with a standard license such as MIT or Apache 2.0 (both are short,
+well-understood, and widely trusted) — just be aware that doing so would
+let anyone, including competitors, use and resell the code freely, which
+is the opposite of what the proprietary terms above are meant to prevent.

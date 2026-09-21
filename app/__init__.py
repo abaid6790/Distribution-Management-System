@@ -1,9 +1,9 @@
 from datetime import datetime, date
 
-from flask import Flask, redirect, url_for, request, render_template
+from flask import Flask, redirect, url_for, request, render_template, flash
 from flask_login import current_user
 
-from app.extensions import db, migrate, login_manager
+from app.extensions import db, migrate, login_manager, csrf, limiter
 from app.permissions import PERMISSION_MODULES, BLUEPRINT_PERMISSION_MAP
 from config import Config
 
@@ -15,12 +15,25 @@ def create_app(config_class=Config):
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
+    csrf.init_app(app)
+    limiter.init_app(app)
 
     from app.models import User
 
     @login_manager.user_loader
     def load_user(user_id):
         return db.session.get(User, user_id)
+
+    from flask_wtf.csrf import CSRFError
+
+    @app.errorhandler(CSRFError)
+    def handle_csrf_error(e):
+        flash("Your session expired or the form was out of date. Please try again.", "error")
+        return redirect(request.referrer or url_for("main.dashboard")), 400
+
+    @app.errorhandler(429)
+    def handle_rate_limit(e):
+        return render_template("429.html"), 429
 
     # ── Template helpers ────────────────────────────────────────────
     @app.template_filter("money")

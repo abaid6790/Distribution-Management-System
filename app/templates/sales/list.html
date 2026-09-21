@@ -47,6 +47,7 @@
             <a href="{{ url_for('invoices.print_sale', sale_id=s.id) }}" target="_blank" class="text-slate hover:text-ink text-sm">Print</a>
             <a href="{{ url_for('sales.edit_sale', sale_id=s.id) }}" class="text-slate hover:text-ink text-sm ml-3">Edit</a>
             <form method="post" action="{{ url_for('sales.delete_sale', sale_id=s.id) }}" class="inline" onsubmit="return confirm('Delete sale {{ s.invoice_number }}? This will restore stock and cannot be undone. The invoice number will never be reused.');">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
               <button type="submit" class="text-slate hover:text-rust text-sm ml-3">Delete</button>
             </form>
           </td>

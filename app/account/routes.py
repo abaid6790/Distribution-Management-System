@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from app.extensions import db
+from app.extensions import db, limiter
 from app.models import AuditLog
 
 account_bp = Blueprint("account", __name__, url_prefix="/account")
@@ -10,6 +10,7 @@ account_bp = Blueprint("account", __name__, url_prefix="/account")
 
 @account_bp.route("/change-password", methods=["GET", "POST"])
 @login_required
+@limiter.limit("15 per hour", methods=["POST"])
 def change_password():
     forced = current_user.must_change_password
 

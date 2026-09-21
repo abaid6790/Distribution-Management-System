@@ -77,6 +77,7 @@
           </div>
           <a href="{{ url_for('account.change_password') }}" class="text-sm text-slate hover:text-ink transition-colors">Password</a>
           <form action="{{ url_for('auth.logout') }}" method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <button type="submit" class="text-sm text-slate hover:text-rust transition-colors">Sign out</button>
           </form>
         </div>

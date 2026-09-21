@@ -21,6 +21,7 @@
 
   {% if tab == 'business' %}
   <form method="post" action="{{ url_for('settings.update_business') }}" class="bg-white border border-line rounded-lg p-6 space-y-4">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <div class="space-y-1.5">
       <label class="text-sm text-slate">Business name</label>
       <input name="business_name" required value="{{ business.business_name }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" />
@@ -49,6 +50,7 @@
 
   {% if tab == 'invoice' %}
   <form method="post" action="{{ url_for('settings.update_invoice') }}" class="bg-white border border-line rounded-lg p-6 space-y-4">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <div class="grid grid-cols-2 gap-4">
       <div class="space-y-1.5"><label class="text-sm text-slate">Sale invoice prefix</label>
         <input name="sale_prefix" required value="{{ invoice.sale_prefix }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
@@ -74,6 +76,7 @@
 
   {% if tab == 'printing' %}
   <form method="post" action="{{ url_for('settings.update_printing') }}" class="bg-white border border-line rounded-lg p-6 space-y-4">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <div class="grid grid-cols-2 gap-4">
       <div class="space-y-1.5">
         <label class="text-sm text-slate">Paper size</label>

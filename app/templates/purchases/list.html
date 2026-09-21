@@ -45,6 +45,7 @@
             <a href="{{ url_for('invoices.print_purchase', purchase_id=p.id) }}" target="_blank" class="text-slate hover:text-ink text-sm">Print</a>
             <a href="{{ url_for('purchases.edit_purchase', purchase_id=p.id) }}" class="text-slate hover:text-ink text-sm ml-3">Edit</a>
             <form method="post" action="{{ url_for('purchases.delete_purchase', purchase_id=p.id) }}" class="inline" onsubmit="return confirm('Delete purchase {{ p.invoice_number }}? This cannot be undone. The invoice number will never be reused.');">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
               <button type="submit" class="text-slate hover:text-rust text-sm ml-3">Delete</button>
             </form>
           </td>

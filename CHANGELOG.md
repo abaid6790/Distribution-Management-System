@@ -3,6 +3,23 @@
 All notable changes to this project, by phase. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/).
 
+## Security hardening — CSRF & rate limiting
+
+### Added
+- CSRF protection (Flask-WTF) on every form in the application —
+  auto-inserted across all 20 templates that contain a POST form.
+- Rate limiting (Flask-Limiter) on `/login` (10/minute/IP) and
+  `/account/change-password` (15/hour), plus a generous global default
+  (1000/hour/IP) on everything else. Dedicated "too many attempts" page
+  instead of a raw 429.
+- Friendly redirect + flash message on CSRF failure instead of a raw
+  400 error page.
+
+### Notes
+- Rate limiting uses in-memory storage by default — fine for a single
+  process, but needs a shared backend (Redis) once running multiple
+  gunicorn workers in production. See `SECURITY.md`.
+
 ## Phase 9 — Role-based permissions
 
 ### Added

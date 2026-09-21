@@ -5,6 +5,7 @@
   <h1 class="font-display text-2xl text-ink">{{ 'Edit Employee' if employee else 'Add Employee' }}</h1>
 
   <form method="post" class="bg-white border border-line rounded-lg p-6 space-y-4">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     {% if employee %}
     <div class="space-y-1.5">
       <label class="text-sm text-slate">Employee code</label>

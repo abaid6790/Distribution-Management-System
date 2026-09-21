@@ -10,6 +10,7 @@
   </div>
 
   <form method="post" class="space-y-6">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     {% if not user %}
     <div class="bg-white border border-line rounded-lg p-6 space-y-4">
       <h2 class="font-display text-sm text-ink">Employee</h2>

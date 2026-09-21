@@ -21,6 +21,7 @@
 
   {% if tab == 'stock' %}
   <form method="post" action="{{ url_for('opening_balances.add_opening_stock') }}" class="bg-white border border-line rounded-lg p-6 space-y-4">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <div class="grid grid-cols-2 gap-4">
       <div class="space-y-1.5">
         <label class="text-sm text-slate">Product</label>
@@ -72,6 +73,7 @@
 
   {% if tab == 'debtors' %}
   <form method="post" action="{{ url_for('opening_balances.add_opening_debtor') }}" class="bg-white border border-line rounded-lg p-6 space-y-4">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <div class="grid grid-cols-3 gap-4">
       <div class="space-y-1.5"><label class="text-sm text-slate">Customer name</label>
         <input name="customer_name" required value="{{ form.get('customer_name','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>
@@ -112,6 +114,7 @@
 
   {% if tab == 'creditors' %}
   <form method="post" action="{{ url_for('opening_balances.add_opening_creditor') }}" class="bg-white border border-line rounded-lg p-6 space-y-4">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <div class="grid grid-cols-3 gap-4">
       <div class="space-y-1.5"><label class="text-sm text-slate">Supplier name</label>
         <input name="supplier_name" required value="{{ form.get('supplier_name','') }}" class="w-full rounded-md border border-line bg-white px-3.5 py-2 text-sm focus:border-amber focus:outline-none focus:ring-1 focus:ring-amber" /></div>

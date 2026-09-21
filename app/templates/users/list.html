@@ -41,6 +41,7 @@
           <td class="px-5 py-3 text-right whitespace-nowrap">
             <a href="{{ url_for('users.edit_user', user_id=u.id) }}" class="text-slate hover:text-ink text-sm">Edit</a>
             <form method="post" action="{{ url_for('users.reset_password', user_id=u.id) }}" class="inline" onsubmit="return confirm('Generate a new password for {{ u.full_name }}? Their current password will stop working immediately.');">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
               <button type="submit" class="text-slate hover:text-ink text-sm ml-3">Reset password</button>
             </form>
           </td>

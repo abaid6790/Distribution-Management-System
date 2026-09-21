@@ -8,6 +8,7 @@
   </div>
 
   <form method="post" id="purchase-form" class="space-y-6" action="{{ url_for('purchases.edit_purchase', purchase_id=editing.id) if editing else url_for('purchases.new_purchase') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <div class="bg-white border border-line rounded-lg p-6 space-y-4">
       <h2 class="font-display text-sm text-ink">Purchase details</h2>
       <div class="space-y-1.5">

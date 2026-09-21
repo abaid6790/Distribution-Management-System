@@ -27,6 +27,7 @@
   <div class="bg-white border border-line rounded-lg p-6 space-y-4">
     <h2 class="font-display text-sm text-ink">Pay supplier</h2>
     <form method="post" action="{{ url_for('creditors.pay_supplier', supplier_id=supplier.id) }}" class="space-y-4">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
       <div class="grid grid-cols-3 gap-4">
         <div class="space-y-1.5">
           <label class="text-sm text-slate">Amount</label>

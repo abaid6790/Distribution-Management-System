@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Too many attempts{% endblock %}
+{% set body %}
+<div class="max-w-md text-center mx-auto py-20">
+  <div class="w-12 h-12 rounded-full bg-amber/15 text-amberdark flex items-center justify-center mx-auto mb-4 font-display text-xl">!</div>
+  <h1 class="font-display text-xl text-ink mb-2">Too many attempts</h1>
+  <p class="text-slate text-sm mb-6">You've tried this too many times in a short period. Please wait a few minutes and try again.</p>
+  <a href="{{ url_for('auth.login') }}" class="inline-block rounded-md px-4 py-2 text-sm font-medium bg-ink text-paper hover:bg-ink2 transition-colors">Back to login</a>
+</div>
+{% endset %}
+{% block content %}{{ body }}{% endblock %}
+{% block auth_content %}<div class="min-h-screen w-full flex items-center justify-center bg-paper px-6">{{ body }}</div>{% endblock %}
